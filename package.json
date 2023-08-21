@@ -9,8 +9,12 @@
     "postinstall": "nuxt prepare"
   },
   "devDependencies": {
+    "@element-plus/nuxt": "^1.0.5",
     "@nuxt/devtools": "latest",
+    "@nuxtjs/google-fonts": "^3.0.2",
     "@types/node": "^18.17.3",
+    "@vueuse/core": "^10.3.0",
+    "element-plus": "^2.3.9",
     "nuxt": "^3.6.5"
   }
 }
