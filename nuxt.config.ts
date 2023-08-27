@@ -2,7 +2,9 @@
 export default defineNuxtConfig({
   devtools: { enabled: true },
   modules: [
-    '@element-plus/nuxt',
+    'nuxt-icon',
+    '@nuxtjs/tailwindcss', 
+    '@nuxtjs/color-mode',
     ['@nuxtjs/google-fonts', {
       families: {
         Roboto: true,
@@ -16,5 +18,4 @@ export default defineNuxtConfig({
       }
     }],
   ],
-  elementPlus: { /** Options */ }
 })
