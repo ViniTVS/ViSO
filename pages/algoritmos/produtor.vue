@@ -26,127 +26,140 @@
 }
 </style>
 
-<script >
+<script setup>
 
 import * as d3 from "d3";
+import { ref, onMounted } from 'vue';
 
 useHead({
   title: 'Produtor-consumidor - VisualSO'
 });
 
-export default {
-  mounted() {
-    this.createWelcomePage();
-    // this.criaCirculo();
-    this.handleResize();
-    window.addEventListener('resize', this.handleResize);
-  },
-  data() {
-    return {
-      canvas: null,
-      containerW: null,
-      containerH: null,
-      produtos: [],
-      buffer: [],
-      consumidos: [],
-    }
-  },
-  watch: {
-    produtos(novo) {
-      console.log(novo);
-    }
-  },
-  methods: {
-    createWelcomePage() {
 
-      this.canvas = d3.select(this.$refs.d3Container)
-        .append('svg')
-        .attr('width', '100%')
-        .attr('height', '100%');
-
-    },
-    handleResize() {
-      this.containerW = document.getElementById("d3Container").offsetWidth;
-      this.containerH = document.getElementById("d3Container").offsetHeight;
-      this.desenhaProdutos();
-    },
-    addProduto() {
-      if(this.produtos.length >=5)
-        return;
-      var produto = this.canvas.append("rect")
-        .attr("width", 20)
-        .attr("height", 20)
-        .attr('x', this.containerW / 4)
-        .attr('y', this.containerH * 0.60 - 30 * this.produtos.length)
-        .attr('fill', 'green');
-
-      this.produtos.push(produto);
-
-    },
-    removeProduto(){
-      if (this.produtos.length < 1)
-        return;
-
-      this.produtos[0].remove();
-      this.produtos.shift();
-
-      for(let i =0; i< this.produtos.length; i++){
-        this.produtos[i]
-        .transition()
-        .duration(1500)
-          .attr('x', this.containerW / 4)
-          .attr('y', this.containerH * 0.60 -  30 * i);
-      }
-    },
-    desenhaProdutos() {
-      for(let i =0; i< this.produtos.length; i++){
-        this.produtos[i]
-          .attr('x', this.containerW / 4)
-          .attr('y', this.containerH * 0.60 -  30 * i);
-      }
-    },
-
-    criaCirculo() {
-      var circle = this.canvas.append('circle')
-        .attr('cx', 250)
-        .attr('cy', 250)
-        .attr('r', 50)
-        .attr('fill', 'red');
-
-      circle.transition()
-        .duration(1500)
-        .delay(2000)
-        .attr('cx', 100)
-        .attr('cy', 100)
-        .transition()
-        .attr('fill', 'blue');
-
-      circle.on('mouseover', function () {
-        d3.select(this)
-          .transition()
-          .attr('r', 100)
-          .attr('fill', 'green');
-      });
+let canvas = ref(null);
+let containerW = ref(null);
+let containerH = ref(null);
+let tam_quadrado = 20;
+let rotulos = ref({
+  obj: [],
+  texto: ["Produtor", "Buffer", "Consumidor"]
+});
+let produtos = ref([]);
+let buffer = ref([]);
+let consumidos = ref([]);
 
 
-      circle.on('mouseout', function () {
-        d3.select(this)
-          .transition()
-          .attr('r', 50)
-          .attr('fill', 'red');
-      });
+onMounted(() => {
+  createWelcomePage();
+  // criaCirculo();
+  handleResize();
+  window.addEventListener('resize', handleResize);
+  for (let i = 0; i < rotulos.value.texto.length; i++) {
+    var t = canvas.value.append("text")
+      .text(rotulos.value.texto[i])
+      .attr("x", containerW.value * (i + 1) / 4)
+      .attr("text-anchor", "middle")
+      .attr("y", containerH.value * 0.70);
+    rotulos.value.obj.push(t);
+  }
 
-      circle.on('click', function () {
-        d3.select(this)
-          .transition()
-          .attr('r', 200)
-          .attr('fill', 'yellow');
-      });
-    }
+})
+
+function createWelcomePage() {
+  canvas.value = d3.select("#d3Container")
+    .append('svg')
+    .attr('width', '100%')
+    .attr('height', '100%');
+}
+
+function handleResize() {
+  containerW.value = document.getElementById("d3Container").offsetWidth;
+  containerH.value = document.getElementById("d3Container").offsetHeight;
+  desenhaProdutos();
+}
+function addProduto() {
+  if (produtos.value.length >= 5)
+    return;
+
+  var produto = canvas.value.append("rect")
+    .attr("width", tam_quadrado)
+    .attr("height", tam_quadrado)
+    .attr('x', containerW.value / 4)
+    .attr('y', containerH.value * 0.60 - 30 * produtos.value.length)
+    .attr('fill', 'transparent');
+  // depois de usar transition ele retorna o elemento da transition, não
+  // o objeto original, então é necessário separá-los
+  produto.transition().duration(250).attr('fill', 'green');
+
+  produtos.value.push(produto);
+
+}
+function removeProduto() {
+  if (produtos.value.length == 0)
+    return;
+
+  produtos.value[0]
+    .transition()
+    .duration(250)
+    .attr('fill', 'transparent')
+    .remove();
+  produtos.value.shift();
+
+  for (let i in produtos.value) {
+    produtos.value[i]
+      .transition()
+      .delay(250)
+      .duration(750)
+      .attr('x', containerW.value / 4)
+      .attr('y', containerH.value * 0.60 - 30 * i);
+  }
+}
+// function desenaRotulos() {
+
+// }
+function desenhaProdutos() {
+  for (let i in produtos.value) {
+    produtos.value[i]
+      .attr('x', containerW.value / 4)
+      .attr('y', containerH.value * 0.60 - 30 * i);
+  }
+}
+function criaCirculo() {
+  var circle = canvas.value.append('circle')
+    .attr('cx', 250)
+    .attr('cy', 250)
+    .attr('r', 50)
+    .attr('fill', 'red');
+
+  circle.transition()
+    .duration(1500)
+    .delay(2000)
+    .attr('cx', 100)
+    .attr('cy', 100)
+    .transition()
+    .attr('fill', 'blue');
+
+  circle.on('mouseover', function () {
+    d3.select(this)
+      .transition()
+      .attr('r', 100)
+      .attr('fill', 'green');
+  });
 
 
+  circle.on('mouseout', function () {
+    d3.select(this)
+      .transition()
+      .attr('r', 50)
+      .attr('fill', 'red');
+  });
 
-  },
+  circle.on('click', function () {
+    d3.select(this)
+      .transition()
+      .attr('r', 200)
+      .attr('fill', 'yellow');
+  });
 }
 
 </script>
