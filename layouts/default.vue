@@ -5,9 +5,9 @@ import { ref, watch } from 'vue';
 
 
 let isDark = ref(false);
-watch(isDark, (a, b) => {
-  console.log(a, b);
-});
+// watch(isDark, (a, b) => {
+//   console.log(a, b);
+// });
 
 onMounted(() => {
   themeChange(false);
@@ -21,7 +21,7 @@ onMounted(() => {
 <template>
   <div class="flex flex-col" style="height: 100vh;">
     <header>
-      <div class="navbar bg-primary text-primary-content">
+      <div class="navbar bg-primary text-primary-content hidden sm:flex">
         <div class="flex-1">
           <NuxtLink class="btn btn-ghost normal-case text-xl" to="/">VisualSO</NuxtLink>
         </div>
