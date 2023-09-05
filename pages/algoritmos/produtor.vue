@@ -4,9 +4,10 @@
     <div class="grow" ref="d3Container" id="d3Container"></div>
     <div id="comandos" class=" m-auto" style="height: 60px;">
       <div class="join">
-        <button class="btn join-item" v-on:click="criaProdutor">Adiciona produtor</button>
-        <button class="btn join-item" v-on:click="removeProdutor">Remove produtor</button>
-        <button class="btn join-item">Button</button>
+        <button class="btn btn-primary join-item" @click="criaProdutor">Adiciona produtor</button>
+        <button class="btn btn-primary join-item" @click="remove()">Remove produtor</button>
+        <button class="btn btn-primary join-item" @click="criaConsumidor">Adiciona Consumidor</button>
+        <button class="btn btn-primary join-item" @click="remove(false)">Remove Consumidor</button>
       </div>
     </div>
   </div>
@@ -37,7 +38,14 @@ useHead({
   title: 'Produtor-consumidor - VisualSO'
 });
 
-
+const cores = [
+  // "hsl(var(--p))",
+  "hsl(var(--s))",
+  "hsl(var(--su))",
+  "hsl(var(--in))",
+  "hsl(var(--wa))",
+  "hsl(var(--er))",
+];
 const TAM_QUADRADO = 20;
 const TAM_CIRCULO = 35;
 const ALT_BUFFER = computed(() =>
@@ -72,11 +80,13 @@ let consumidores = ref([]);
 watch(containerW, () => {
   desenhaProdutores();
   desenhaBuffer();
+  desenhaConsumidores();
 });
 
 watch(containerH, () => {
   desenhaProdutores();
   desenhaBuffer();
+  desenhaConsumidores();
 });
 
 onMounted(() => {
@@ -90,13 +100,16 @@ onMounted(() => {
   // e adiciona a possibilidade de setas
   const arrow = d3a.arrow1()
     .id("my-arrow")
-    .attr("fill", "black")
-    .attr("stroke", "black");
+    .attr("fill", "hsl(var(--ac))")
+    .attr("stroke", "hsl(var(--ac))");
   canvas.value.call(arrow);
 
   criaProdutor();
   criaProdutor();
   desenhaBuffer();
+  criaConsumidor();
+  criaConsumidor();
+  criaConsumidor();
 })
 
 // corrige a posição do círculo, texto e seta de cada produtor
@@ -109,35 +122,54 @@ function desenhaProdutores() {
     let pos_x = containerW.value / 8; // fica em 1/8 da tela 
     let pos_y = containerH.value * proporcao;
     let pos_buff_x = containerW.value / 2 - LARG_BUFFER / 2;
-
-    produtores.value[i].objeto
-      .on("click", teste)
-      .transition().duration(250).attr("cx", pos_x).attr("cy", pos_y);
-
-    produtores.value[i].texto
-      .transition().duration(250).text("p" + (i + 1))
-      .attr("dx", pos_x)
-      .attr("dy", pos_y + 8);
-
-    if (produtores.value[i].seta == null) {
-      produtores.value[i].seta = canvas.value.append("polyline")
-        .attr("marker-end", "url(#my-arrow)")
-        .attr("stroke", "black")
-        .attr("stroke-width", 2);
-    }
-    produtores.value[i].seta
-      .attr("stroke", "transparent")
-      .transition()
-      .delay(250)
-      .duration(250)
-      .attr("stroke", "black")
-      .attr("points", [
-        [pos_x + TAM_CIRCULO + 10, pos_y],
-        // (containerH.value - ALT_BUFFER.value) / 2 é o canto superior do buffer
-        // depois queremos percorrer uma distância "porporcional" para "distribuir" as setas
-        [pos_buff_x - 10, (containerH.value - ALT_BUFFER.value) / 2 + proporcao * ALT_BUFFER.value]
-      ]);
+    let ini_seta = [pos_x + TAM_CIRCULO + 10, pos_y];
+    let fim_seta = [pos_buff_x - 10, (containerH.value - ALT_BUFFER.value) / 2 + proporcao * ALT_BUFFER.value];
+    // (containerH.value - ALT_BUFFER.value) / 2 é o canto superior do buffer
+    // depois queremos percorrer uma distância "porporcional" para "distribuir" as setas
+    animaObjetoSeta(produtores.value[i], "p" + (i + 1), pos_x, pos_y, ini_seta, fim_seta);
   }
+}
+
+// corrige a posição do círculo, texto e seta de cada produtor
+function desenhaConsumidores() {
+  let num_con = consumidores.value.length;
+  for (let i = 0; i < num_con; i++) {
+    // queremos que cada item tenha um espaço proporcional entre si e ao mesmo tempo 
+    // centralizado, então para que não fique nos extremos dividimos por num. total + 1
+    let proporcao = (i + 1) / (num_con + 1)
+    let pos_x = containerW.value * 7 / 8; // fica em 7/8 da tela 
+    let pos_y = containerH.value * proporcao;
+    let pos_buff_x = containerW.value / 2 + LARG_BUFFER / 2;
+    let fim_seta = [pos_x - (TAM_CIRCULO + 10), pos_y];
+    let ini_seta = [pos_buff_x + 10, (containerH.value - ALT_BUFFER.value) / 2 + proporcao * ALT_BUFFER.value];
+    animaObjetoSeta(consumidores.value[i], "c" + (i + 1), pos_x, pos_y, ini_seta, fim_seta);
+  }
+}
+
+
+function animaObjetoSeta(item, nome, pos_x, pos_y, seta_ini, seta_fim) {
+  item.objeto
+    .on("click", teste)
+    .transition().duration(250).attr("cx", pos_x).attr("cy", pos_y);
+
+  item.texto
+    .transition().duration(250).text(nome)
+    .attr("dx", pos_x)
+    .attr("dy", pos_y + 8);
+
+  if (item.seta == null) {
+    item.seta = canvas.value.append("polyline")
+      .attr("marker-end", "url(#my-arrow)")
+      .attr("stroke", "hsl(var(--ac))")
+      .attr("stroke-width", 2);
+  }
+  item.seta
+    .attr("stroke", "transparent")
+    .transition()
+    .delay(250)
+    .duration(250)
+    .attr("stroke", "hsl(var(--ac))")
+    .attr("points", [seta_ini, seta_fim]);
 }
 
 function teste(event) {
@@ -151,8 +183,8 @@ function desenhaBuffer() {
       .attr("width", LARG_BUFFER)
       .attr("height", ALT_BUFFER.value)
       .attr("stroke-width", 5)
-      .attr("stroke", "black")
-      .attr("fill", "lightgrey")
+      .attr("stroke", "hsl(var(--ac))")
+      .attr("fill", "hsl(var(--nc))")
       .on("click", teste);
   }
   buffer.value.objeto
@@ -160,10 +192,12 @@ function desenhaBuffer() {
     .attr("height", ALT_BUFFER.value)
     .attr("x", containerW.value / 2 - LARG_BUFFER / 2)
     .attr("y", containerH.value / 2 - ALT_BUFFER.value / 2);
-
 }
 
 function criaProdutor() {
+  if (produtores.value.length >= cores.length)
+    return;
+
   // coloca a pos inicial dos desenhos pra fora da area pra fazer uma animação legal
   let pos_x = containerW.value / 8;
   let pos_y = containerH.value + 100;
@@ -172,39 +206,75 @@ function criaProdutor() {
     .style("stroke-width", 5)
     .attr("cx", pos_x)
     .attr("cy", pos_y)
-    .style("stroke", "black")
-    .style("fill", "cyan");
+    .style("stroke", "hsl(var(--ac))")
+    .style("fill", cores[produtores.value.length]);
 
   var texto = canvas.value.append("text")
     .attr("text-anchor", "middle")
     .attr("dx", pos_x)
     .attr("dy", pos_y)
     .text("");
-
+  texto.style('fill', 'hsl(var(--ac))');
+  
   produtores.value.push({
     objeto: objeto,
     texto: texto,
     seta: null
   });
-}
-
-function removeProdutor() {
-  if (produtores.value.length == 0)
-    return;
-
-  var p = produtores.value.pop();
-  p.objeto.remove();
-  p.texto.remove();
-  p.seta.remove();
   desenhaProdutores();
 }
 
+function criaConsumidor() {
+  // coloca a pos inicial dos desenhos pra fora da area pra fazer uma animação legal
+  let pos_x = containerW.value * 7 / 8;
+  let pos_y = containerH.value + 100;
+  var objeto = canvas.value.append("circle")
+    .attr("r", TAM_CIRCULO)
+    .style("stroke-width", 5)
+    .attr("cx", pos_x)
+    .attr("cy", pos_y)
+    .style("stroke", "hsl(var(--ac))")
+    .style("fill", "hsl(var(--a))");
+
+  var texto = canvas.value.append("text")
+    .attr("text-anchor", "middle")
+    .attr("dx", pos_x)
+    .attr("dy", pos_y)
+    .text("");
+  texto.style('fill', 'hsl(var(--ac))');
+  consumidores.value.push({
+    objeto: objeto,
+    texto: texto,
+    seta: null
+  });
+  desenhaConsumidores();
+}
+
+// remove um produtor (no caso de produtor ser true) ou consumidor (caso contrário)
+function remove(produtor = true) {
+  let vetor = produtor === true
+    ? produtores.value
+    : consumidores.value;
+
+  if (vetor.length == 0)
+    return;
+
+  var p = vetor.pop();
+  p.objeto.remove();
+  p.texto.remove();
+  if (p.seta != null)
+    p.seta.remove();
+
+  if (produtor === true) {
+    desenhaProdutores();
+  } else {
+    desenhaConsumidores();
+  }
+}
 
 function handleResize() {
   containerW.value = document.getElementById("d3Container").offsetWidth;
   containerH.value = document.getElementById("d3Container").offsetHeight;
 }
-
-
 
 </script>
