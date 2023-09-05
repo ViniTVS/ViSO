@@ -56,7 +56,7 @@ const ALT_BUFFER = computed(() =>
   )
 );
 const LARG_BUFFER = 300;
-const TAM_BUFFER = 30;
+const TAM_BUFFER = 3;
 
 let canvas = ref(null);
 let containerW = ref(null);
@@ -149,7 +149,6 @@ function desenhaConsumidores() {
 
 function animaObjetoSeta(item, nome, pos_x, pos_y, seta_ini, seta_fim) {
   item.objeto
-    .on("click", teste)
     .transition().duration(250).attr("cx", pos_x).attr("cy", pos_y);
 
   item.texto
@@ -164,16 +163,32 @@ function animaObjetoSeta(item, nome, pos_x, pos_y, seta_ini, seta_fim) {
       .attr("stroke-width", 2);
   }
   item.seta
-    .attr("stroke", "transparent")
+    // .attr("stroke", "transparent")
     .transition()
-    .delay(250)
+    // .delay(250)
     .duration(250)
     .attr("stroke", "hsl(var(--ac))")
     .attr("points", [seta_ini, seta_fim]);
 }
 
-function teste(event) {
-  console.log("teste", event);
+function clickProdutor(event) {
+  let bufferCheio = false;
+// buffer.value.conteudo.push();
+if(bufferCheio){
+  // trata quando o buffer estiver cheio
+  return;
+}
+let id = parseInt(event.srcElement.id); 
+
+
+
+
+  console.log("clickProdutor", id);
+
+
+
+
+
 }
 
 
@@ -185,7 +200,6 @@ function desenhaBuffer() {
       .attr("stroke-width", 5)
       .attr("stroke", "hsl(var(--ac))")
       .attr("fill", "hsl(var(--nc))")
-      .on("click", teste);
   }
   buffer.value.objeto
     .attr("width", LARG_BUFFER)
@@ -206,16 +220,22 @@ function criaProdutor() {
     .style("stroke-width", 5)
     .attr("cx", pos_x)
     .attr("cy", pos_y)
+    .attr("id", produtores.value.length + 1) 
     .style("stroke", "hsl(var(--ac))")
-    .style("fill", cores[produtores.value.length]);
+    .style("fill", cores[produtores.value.length])
+    .style("cursor", "pointer");
+  objeto.on("click", clickProdutor);
 
   var texto = canvas.value.append("text")
     .attr("text-anchor", "middle")
     .attr("dx", pos_x)
     .attr("dy", pos_y)
-    .text("");
-  texto.style('fill', 'hsl(var(--ac))');
-  
+    .attr("id", produtores.value.length + 1) 
+    .text("")
+    .style("cursor", "pointer")
+    .style('fill', 'hsl(var(--ac))');
+  texto.on("click", clickProdutor);
+
   produtores.value.push({
     objeto: objeto,
     texto: texto,
@@ -234,13 +254,15 @@ function criaConsumidor() {
     .attr("cx", pos_x)
     .attr("cy", pos_y)
     .style("stroke", "hsl(var(--ac))")
-    .style("fill", "hsl(var(--a))");
+    .style("fill", "hsl(var(--a))")
+    .style("cursor", "pointer");
 
   var texto = canvas.value.append("text")
     .attr("text-anchor", "middle")
     .attr("dx", pos_x)
     .attr("dy", pos_y)
-    .text("");
+    .text("")
+    .style("cursor", "pointer");
   texto.style('fill', 'hsl(var(--ac))');
   consumidores.value.push({
     objeto: objeto,
@@ -256,7 +278,7 @@ function remove(produtor = true) {
     ? produtores.value
     : consumidores.value;
 
-  if (vetor.length == 0)
+  if (vetor.length <= 1)
     return;
 
   var p = vetor.pop();
