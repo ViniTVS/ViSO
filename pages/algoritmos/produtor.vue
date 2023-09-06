@@ -57,6 +57,7 @@ const ALT_BUFFER = computed(() =>
 );
 const LARG_BUFFER = 300;
 const TAM_BUFFER = 9;
+const LINHA_BUFFER = 3;
 
 let canvas = ref(null);
 let containerW = ref(null);
@@ -147,7 +148,6 @@ function desenhaConsumidores() {
   }
 }
 
-
 function animaObjetoSeta(item, nome, pos_x, pos_y, seta_ini, seta_fim) {
   item.objeto
     .transition().duration(250).attr("cx", pos_x).attr("cy", pos_y);
@@ -201,14 +201,15 @@ function clickProdutor(event) {
     .duration(1000)
     .attr("x", containerW.value / 2 - LARG_BUFFER / 2)
     .attr("y", pos_seta[1][1] - (TAM_QUADRADO + 10));
+
   // remove objeto do buffer pra redesenhá-lo pra esconder o quadrado
-  buffer.value.objeto.remove();
-  buffer.value.objeto = null;
-  desenhaBuffer();
+  // buffer.value.objeto.remove();
+  // buffer.value.objeto = null;
+  buffer.value.conteudo.push(item);
+  desenhaBuffer(1250);
 }
 
-
-function desenhaBuffer() {
+function desenhaBuffer(delay_animacao = 0) {
   if (buffer.value.objeto == null) {
     buffer.value.objeto = canvas.value.append("rect")
       .attr("width", LARG_BUFFER)
@@ -222,6 +223,22 @@ function desenhaBuffer() {
     .attr("height", ALT_BUFFER.value)
     .attr("x", containerW.value / 2 - LARG_BUFFER / 2)
     .attr("y", containerH.value / 2 - ALT_BUFFER.value / 2);
+
+  for (let i = 0; i < buffer.value.conteudo.length; i++) {
+    let diff_x = LINHA_BUFFER - parseInt(i % LINHA_BUFFER) * 2;
+    let diff_y = LINHA_BUFFER - parseInt(i / LINHA_BUFFER) * 2;
+    let pos_x = containerW.value / 2 - diff_x * TAM_QUADRADO / 2;
+    let pos_y = containerH.value / 2 - diff_y * TAM_QUADRADO / 2;
+    console.log(i, pos_x, pos_y);
+    buffer.value.conteudo[i]
+      .transition()
+      .delay(delay_animacao)
+      .duration(500)
+      .attr("x", pos_x)
+      .attr("y", pos_y);
+
+  }
+
 }
 
 function criaProdutor() {
