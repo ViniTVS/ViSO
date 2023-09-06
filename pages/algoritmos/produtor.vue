@@ -46,17 +46,17 @@ const cores = [
   "hsl(var(--wa))",
   "hsl(var(--er))",
 ];
-const TAM_QUADRADO = 20;
-const TAM_CIRCULO = 35;
+const TAM_QUADRADO = 40;
+const TAM_CIRCULO = 50;
 const ALT_BUFFER = computed(() =>
-  // 200 <= ALT_BUFFER = containerH * 0.8 <= 350 
+  // ALT_BUFFER = 200 <= containerH * 0.8 <= 350 
   Math.max(
     Math.min(containerH.value * 0.8, 350),
     200
   )
 );
 const LARG_BUFFER = 300;
-const TAM_BUFFER = 3;
+const TAM_BUFFER = 9;
 
 let canvas = ref(null);
 let containerW = ref(null);
@@ -69,6 +69,7 @@ let rotulos = ref({
 // objeto: o objeto/elemento do canvas pra controle, 
 // texto: o objeto/elemento do texto do produtor (p + num. produtor),
 //  seta: o objeto/elemento da setinha que sai de cada produtor pro buffer 
+// pos_seta
 let produtores = ref([]);
 let buffer = ref({
   objeto: null,
@@ -169,26 +170,41 @@ function animaObjetoSeta(item, nome, pos_x, pos_y, seta_ini, seta_fim) {
     .duration(250)
     .attr("stroke", "hsl(var(--ac))")
     .attr("points", [seta_ini, seta_fim]);
+  item.pos_seta = [seta_ini, seta_fim];
 }
 
 function clickProdutor(event) {
-  let bufferCheio = false;
-// buffer.value.conteudo.push();
-if(bufferCheio){
-  // trata quando o buffer estiver cheio
-  return;
-}
-let id = parseInt(event.srcElement.id); 
+  let bufferCheio = buffer.value.conteudo.length >= TAM_BUFFER;
+  // buffer.value.conteudo.push();
+  if (bufferCheio) {
+    // trata quando o buffer estiver cheio
+    return;
+  }
+  let id = parseInt(event.srcElement.id);
+  let pos_seta = produtores.value[id - 1].pos_seta;
+  // a posição inicial do quadradinho é o meio da seta - TAM_QUADRADO / 2 pra centralizar
+  let pos_x1 = (pos_seta[0][0] + pos_seta[1][0]) / 2 - TAM_QUADRADO / 2;
+  // e um pouco acima do meio
+  let pos_y1 = (pos_seta[0][1] + pos_seta[1][1]) / 2 - (TAM_QUADRADO * 3 / 2);
+  let item = canvas.value.append("rect")
+    .attr("width", TAM_QUADRADO)
+    .attr("height", TAM_QUADRADO)
+    .attr("stroke-width", 4)
+    .style("stroke", "hsl(var(--ac))")
+    .style("fill", cores[id - 1])
+    .attr("x", pos_x1)
+    .attr("y", pos_y1);
 
-
-
-
-  console.log("clickProdutor", id);
-
-
-
-
-
+  item
+    .transition()
+    .delay(250)
+    .duration(1000)
+    .attr("x", containerW.value / 2 - LARG_BUFFER / 2)
+    .attr("y", pos_seta[1][1] - (TAM_QUADRADO + 10));
+  // remove objeto do buffer pra redesenhá-lo pra esconder o quadrado
+  buffer.value.objeto.remove();
+  buffer.value.objeto = null;
+  desenhaBuffer();
 }
 
 
@@ -220,7 +236,7 @@ function criaProdutor() {
     .style("stroke-width", 5)
     .attr("cx", pos_x)
     .attr("cy", pos_y)
-    .attr("id", produtores.value.length + 1) 
+    .attr("id", produtores.value.length + 1)
     .style("stroke", "hsl(var(--ac))")
     .style("fill", cores[produtores.value.length])
     .style("cursor", "pointer");
@@ -230,7 +246,7 @@ function criaProdutor() {
     .attr("text-anchor", "middle")
     .attr("dx", pos_x)
     .attr("dy", pos_y)
-    .attr("id", produtores.value.length + 1) 
+    .attr("id", produtores.value.length + 1)
     .text("")
     .style("cursor", "pointer")
     .style('fill', 'hsl(var(--ac))');
@@ -239,7 +255,8 @@ function criaProdutor() {
   produtores.value.push({
     objeto: objeto,
     texto: texto,
-    seta: null
+    seta: null,
+    pos_seta: null
   });
   desenhaProdutores();
 }
