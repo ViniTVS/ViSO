@@ -21,7 +21,7 @@ onMounted(() => {
 <template>
   <div class="flex flex-col" style="height: 100vh;">
     <header>
-      <div class="navbar bg-primary text-primary-content hidden sm:flex">
+      <div class="navbar bg-primary text-primary-content hidden md:flex">
         <div class="flex-1">
           <NuxtLink class="btn btn-ghost normal-case text-xl" to="/">VisualSO</NuxtLink>
         </div>
