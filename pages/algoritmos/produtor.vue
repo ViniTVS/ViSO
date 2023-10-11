@@ -70,7 +70,8 @@ let canvas = null;
 // sendo que cada uma das posições são um vetor ([coordenada_x, coordenada_y])
 let consumidores = [];
 let produtores = [];
-
+// se ainda estiver fazendo animação não permitir que adicione/remova do buffer
+let animacao = false; 
 let buffer = {
   indice_c: 0,
   indice_p: 0,
@@ -204,6 +205,10 @@ function posicionaCirculo(item, nome, pos_x, pos_y, seta_ini, seta_fim) {
  * @param {Object} event Evento que se é passado pelo d3.js para execução.
  */
 function clickProdutor(event) {
+  if (animacao)
+    return;
+
+  animacao = true;
   // verifica se o buffer está cheio
   if (buffer.usado >= TAM_BUFFER) {
     // trata quando o buffer estiver cheio
@@ -234,6 +239,9 @@ function clickProdutor(event) {
   buffer.usado += 1;
   buffer.indice_p = (buffer.indice_p + 1) % TAM_BUFFER;
   desenhaBuffer(1250);
+  setTimeout(() => {
+    animacao = false;
+  }, 1750);
 }
 
 /**
@@ -244,6 +252,9 @@ function clickProdutor(event) {
  * @param {object} event Evento que se é passado pelo d3.js para execução.
  */
 function clickConsumidor(event) {
+  if (animacao)
+    return;
+  animacao = true;
   // verifica se o buffer está cheio
   if (buffer.usado == 0) {
     // trata quando o buffer estiver vazio
@@ -266,6 +277,10 @@ function clickConsumidor(event) {
 
   buffer.indice_c = (buffer.indice_c + 1) % TAM_BUFFER;
   buffer.usado -= 1;
+  setTimeout(() => {
+    animacao = false;
+  }, 2000);
+
 }
 
 /**
