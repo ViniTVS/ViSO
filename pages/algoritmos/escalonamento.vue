@@ -17,8 +17,8 @@
     </div>
   </div>
 </template>
-    
-  
+
+
 <style scoped>
 #d3Container {
   height: 274px;
@@ -28,7 +28,7 @@
   overflow: scroll;
 }
 </style>
-  
+
 <script setup>
 
 import * as d3 from "d3";
@@ -47,6 +47,10 @@ const cores = [
   "hsl(var(--wa))",
   "hsl(var(--er))",
 ];
+const cores_estado= [
+  "hsl(var(--b1))",
+  "hsl(var(--b3))",
+]
 // constantes com tamanhos dos quadrados, círculos e buffer
 const TAM_QUADRADO = 25;
 const MARGEM_DESENHO = 100;
@@ -71,27 +75,32 @@ let tarefas = [
   {
     ingresso: 0,
     duracao: 5,
-    prioridade: 2
+    prioridade: 2,
+    estado: 1
   },
   {
     ingresso: 0,
     duracao: 2,
-    prioridade: 3
+    prioridade: 3,
+    estado: 2
   },
   {
     ingresso: 1,
     duracao: 4,
-    prioridade: 1
+    prioridade: 1,
+    estado: 1
   },
   {
     ingresso: 3,
     duracao: 1,
-    prioridade: 4
+    prioridade: 4,
+    estado: 0
   },
   {
     ingresso: 5,
     duracao: 2,
-    prioridade: 5
+    prioridade: 5,
+    estado: 0
   },
 ];
 
@@ -109,7 +118,7 @@ watch(containerH, () => {
 onMounted(() => {
   handleResize();
   window.addEventListener('resize', handleResize);
-  // "cria" canvas 
+  // "cria" canvas
   canvas = d3.select("#d3Container")
     .append('svg')
     .attr('width', '100%')
@@ -118,7 +127,7 @@ onMounted(() => {
   var elementos = 40;
   let saida = firstComefirstServed(tarefas);
   document.getElementById('d3Container').setAttribute("style", "width:" + (elementos * TAM_QUADRADO + 4) + "px");
-  gridData = criaGrid(5, elementos);
+  gridData = criaGrid(5, elementos, tarefas);
 
   row = canvas.selectAll(".row")
     .data(gridData)
@@ -138,9 +147,9 @@ onMounted(() => {
 })
 
 /**
- * 
+ *
  * @param {*} tarefas vetor de objetos com campos ingresso, duracao e prioridade
- * @param {*} t 
+ * @param {*} t
  */
 function firstComefirstServed(tarefas, indice_atual = -1, tempo = 0) {
   var novo_indice = indice_atual;
@@ -154,11 +163,11 @@ function firstComefirstServed(tarefas, indice_atual = -1, tempo = 0) {
   }
 }
 
-function criaGrid(linhas, colunas) {
+function criaGrid(linhas, colunas, tarefas) {
   var grid = new Array();
   var click = 0;
 
-  // iterate for rows	
+  // iterate for rows
   for (var lin = 0; lin < linhas; lin++) {
     grid.push(new Array());
 
@@ -170,7 +179,7 @@ function criaGrid(linhas, colunas) {
         width: TAM_QUADRADO,
         height: TAM_QUADRADO,
         click: click,
-        cor: cores[lin % cores.length],
+        cor: getColorByState(tarefas[lin].estado, lin)
         // click: click
       })
     }
@@ -183,10 +192,15 @@ function dd() {
     console.log(arguments[i]);
 }
 
+function getColorByState(estado, lin) {
+  if (estado == 0) return cores_estado[0];
+  if (estado == 1) return cores_estado[1];
+  if (estado == 2) return cores[lin % cores.length];
+
+}
 function handleResize() {
   containerW.value = document.getElementById("d3Container").offsetWidth;
   containerH.value = document.getElementById("d3Container").offsetHeight;
 }
 
 </script>
-    
