@@ -37,6 +37,9 @@ onMounted(() => {
               <li>
                 <NuxtLink :class="isDark ? 'text-primary-content' : 'text-black'" to="/algoritmos/slab">Slab</NuxtLink>
               </li>
+              <li>
+                <NuxtLink :class="isDark ? 'text-primary-content' : 'text-black'" to="/algoritmos/escalonamento">Escalonamento de tarefas</NuxtLink>
+              </li>
             </ul>
           </div>
           <button class="btn btn-primary btn-sm" data-toggle-theme="dark,light" aria-label="Alterar tema"
