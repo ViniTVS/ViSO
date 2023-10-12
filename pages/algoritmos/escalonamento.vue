@@ -2,28 +2,8 @@
 <template>
   <div class="flex flex-col h-full">
     <!-- <div class="grow">a</div> -->
-    <div>
-      <table>
-        <thead>
-          <tr>
-            <th v-for="header in headers" :key="header">{{ header }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="row in data" :key="row.id">
-            <td v-for="(cell, index) in row.cells" :key="index">
-              <span v-if="cell.id === 1" style="padding: 8px">{{ cell.value }}</span>
-              <span v-else-if="cell.id === 7" style="padding: 8px">{{ cell.value }}</span>
-              <span v-else-if="cell.id === 13" style="padding: 8px">{{ cell.value }}</span>
-              <input v-else type="number" v-model="cell.value" @change="updateTarefas(row.id, cell.value)" min="0"
-                max="5">
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <div class=" flex flex-row items-start">
-      <div class="flex flex-col h-full justify-evenly" style="height: 274px; padding-left: 10px;">
+    <div class="flex flex-row items-start">
+      <div class="flex flex-col-reverse h-full justify-evenly" style="height: 274px; padding-left: 10px;">
         <p>t1</p>
         <p>t2</p>
         <p>t3</p>
@@ -58,7 +38,7 @@ import * as d3 from "d3";
 import { ref, computed, onMounted, } from 'vue';
 
 useHead({
-  title: 'Produtor-consumidor - VisualSO'
+  title: 'Escalonamento de tarefas - VisualSO'
 });
 const headers = ["Tarefa", "t1", "t2", "t3", "t4", "t5"];
 const data = [
@@ -102,30 +82,12 @@ const cores = [
   "hsl(var(--wa))",
   "hsl(var(--er))",
 ];
-const cores_estado = [
-  "hsl(var(--b1))",
-  "hsl(var(--b3))",
-]
 // constantes com tamanhos dos quadrados, círculos e buffer
 const TAM_QUADRADO = 25;
-const MARGEM_DESENHO = 100;
-let buffer = {
-  indice_c: 0,
-  indice_p: 0,
-  usado: 0,
-  objeto: null,
-  conteudo: null,
-};
-let containerW = ref(null);
-let containerH = ref(null);
 let gridData;
 let canvas;
-let grid;
-
 let row;
-
 let col;
-
 let tarefas = [
   {
     ingresso: 0,
@@ -160,41 +122,21 @@ let tarefas = [
 ];
 
 
-
-function updateTarefas(id, value) {
-
-  if (id >= 2 && id <= 6) {
-    tarefas[id - 2].ingresso = value;
-  } if (id >= 8 && id <= 12) {
-    tarefas[id - 8].duracao = value;
-  } if (id >= 14 && id <= 18) {
-    tarefas[id - 14].prioridade = value;
-  }
-
-}
-
-watch(containerW, () => {
-});
-
-watch(containerH, () => {
-});
-
 /**
  * Função chamada uma só vez quando a página é montada.
  */
 onMounted(() => {
-  handleResize();
-  window.addEventListener('resize', handleResize);
-  // "cria" canvas
+  // "cria" canvas 
   canvas = d3.select("#d3Container")
     .append('svg')
     .attr('width', '100%')
     .attr('height', '100%');
 
-  var elementos = 40;
   let saida = firstComefirstServed(tarefas);
-  document.getElementById('d3Container').setAttribute("style", "width:" + (elementos * TAM_QUADRADO + 4) + "px");
-  gridData = criaGrid(5, elementos, tarefas);
+  console.log(saida);
+  let colunas = saida.length;
+  document.getElementById('d3Container').setAttribute("style", "width:" + (colunas * TAM_QUADRADO + 4) + "px");
+  gridData = criaGrid(saida);
 
   row = canvas.selectAll(".row")
     .data(gridData)
@@ -209,67 +151,106 @@ onMounted(() => {
     .attr("width", function (d) { return d.width; })
     .attr("height", function (d) { return d.height; })
     .style("fill", function (d) { return d.cor; })
-    .style("stroke", "#000")
+    .style("stroke", function (d) { return d.cor_borda; })
     .attr("stroke-width", 2);
 })
 
 /**
- *
- * @param {*} tarefas vetor de objetos com campos ingresso, duracao e prioridade
- * @param {*} t
+ * Cria um vetor de tarefas para ser passado à criaGrid.
+ * 
+ * @param {Array} tarefas Vetor de objetos com campos ingresso, duracao, prioridade e estado
+ * @param {Int} indice_atual Índice da última tarefa executada. Por padrão é -1.
+ * @param {Int} tempo Tempo de execução do algoritmo. Por padrão é 0.
+ * 
+ * @returns Vetor de tarefas com campo estado atualizado.
  */
 function firstComefirstServed(tarefas, indice_atual = -1, tempo = 0) {
-  var novo_indice = indice_atual;
-  dd(tarefas[novo_indice]);
-  for (let i = 0; i < tarefas.length; i++) {
-    if (tarefas[i].ingresso <= tempo) {
-      if (novo_indice == -1) {
-        novo_indice = i;
+  var indice;
+  // define indice inicial. Se a tarefa ainda não acabou, usar seu indice 
+  if (indice_atual >= 0 && tarefas[indice_atual].duracao > 0) {
+    indice = indice_atual;
+  } else {
+    indice = -1;
+  }
+  var tarefas_c = structuredClone(tarefas);  // copia vetor de tarefas
+
+  // passa por todas as tarefas e "coloca para execução" a de menor tempo de ingresso
+  for (let i = 0; i < tarefas_c.length; i++) {
+    // tarefa está em espera ou sendo executada
+    if (tarefas_c[i].ingresso <= tempo && tarefas_c[i].duracao > 0) {
+      tarefas_c[i].estado = 1;
+      if (indice == -1) { // indice ainda não definido
+        indice = i;
+      } // first come, first served
+      else if (tarefas_c[i].ingresso < tarefas_c[indice].ingresso) {
+        indice = i;
       }
     }
+    // atualiza estado se tarefa já foi executada
+    if (tarefas_c[i].duracao <= 0 || tarefas_c[i].ingresso > tempo)
+      tarefas_c[i].estado = 0;
   }
+  // verifica se ainda tem tarefas para serem executadas
+  let resta_tarefa = false;
+  for (let i = 0; i < tarefas_c.length; i++) {
+    if (tarefas_c[i].ingresso > tempo) {
+      resta_tarefa = true;
+      break;
+    }
+  }
+  // caso base - não tem mais tarefas a serem feitas
+  if (indice == -1 && !resta_tarefa)
+    return [];
+
+  // atualiza a duracao e estado do selecionado
+  if (indice >= 0) {
+    tarefas_c[indice].duracao -= 1;
+    tarefas_c[indice].estado = 2;
+  }
+
+  var saida = [];
+  saida.push(tarefas_c);
+  var ret = firstComefirstServed(tarefas_c, indice, tempo + 1);
+  // cria um vetor de tarefas e o retorna
+  for (let r of ret) {
+    saida.push(r);
+  }
+  return saida;
 }
 
-function criaGrid(linhas, colunas, tarefas) {
+function criaGrid(tarefas) {
+  let linhas = tarefas[0].length;
+  let colunas = tarefas.length;
   var grid = new Array();
   var click = 0;
 
   // iterate for rows
   for (var lin = 0; lin < linhas; lin++) {
     grid.push(new Array());
-
     // iterate for cells/cols inside rows
     for (var col = 0; col < colunas; col++) {
+      const [cor, borda] = getColorByState(tarefas[col][linhas - lin - 1].estado, lin)
       grid[lin].push({
         x: TAM_QUADRADO * col,
         y: TAM_QUADRADO * lin,
         width: TAM_QUADRADO,
         height: TAM_QUADRADO,
         click: click,
-        cor: getColorByState(tarefas[lin].estado, lin)
-        // click: click
+        cor: cor,
+        cor_borda: borda,
+        estado: tarefas[col][linhas - lin - 1].estado
       })
     }
+    // ordena vetor para o d3 poder desenhar os coloridos por último
+    grid[lin] = grid[lin].sort((a, b) => a.estado > b.estado ? 1 : 0);
   }
   return grid;
 }
 
-function dd() {
-  for (var i = 0; i < arguments.length; ++i)
-    console.log(arguments[i]);
-}
-
-
-
 function getColorByState(estado, lin) {
-  if (estado == 0) return cores_estado[0];
-  if (estado == 1) return cores_estado[1];
-  if (estado == 2) return cores[lin % cores.length];
-
-}
-function handleResize() {
-  containerW.value = document.getElementById("d3Container").offsetWidth;
-  containerH.value = document.getElementById("d3Container").offsetHeight;
+  if (estado == 0) return ["hsl(var(--b1))", "hsl(var(--b3))"];
+  if (estado == 1) return ["hsl(var(--b1))", "hsl(var(--ac))"];
+  if (estado == 2) return [cores[lin % cores.length], "hsl(var(--ac))"];
 }
 
 </script>
