@@ -261,7 +261,7 @@ function getColorByState(estado, lin) {
 }
 
 function desenhaGrid(data){
-
+  row.remove();
   row = canvas.selectAll(".row")
     .data(data)
     .enter().append("g");
