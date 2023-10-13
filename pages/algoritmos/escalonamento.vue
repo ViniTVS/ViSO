@@ -2,18 +2,46 @@
 <template>
   <div class="flex flex-col h-full">
     <!-- <div class="grow">a</div> -->
-    <div class="flex flex-row items-start">
-      <div class="flex flex-col-reverse h-full justify-evenly" style="height: 274px; padding-left: 10px;">
+    <div class="w-100 md:w-1/2 mx-auto">
+      <table class="table">
+        <thead class="bg-base-200">
+          <tr>
+            <th v-for="header in headers" :key="header">{{ header }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="bg-base-200">Ingresso</td>
+            <td v-for="tarefa in tarefas">
+              <input class="w-10" type="number" min="0" v-model="tarefa.ingresso">
+            </td>
+          </tr>
+          <tr>
+            <td class="bg-base-200">Duração</td>
+            <td v-for="tarefa in tarefas">
+              <input class="w-10" type="number" min="0" v-model="tarefa.duracao">
+            </td>
+          </tr>
+          <tr>
+            <td class="bg-base-200">Prioridade</td>
+            <td v-for="tarefa in tarefas">
+              <input class="w-10" type="number" min="0" v-model="tarefa.prioridade">
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="flex flex-row items-start" style="height: 274px; ">
+      <div class="flex flex-col-reverse h-full justify-evenly" style="padding-left: 10px;">
         <p>t1</p>
         <p>t2</p>
         <p>t3</p>
         <p>t4</p>
         <p>t5</p>
       </div>
-      <div style="overflow: scroll;">
+      <div class="mr-10" style="overflow: auto;">
         <div ref="d3Container" id="d3Container"></div>
       </div>
-
     </div>
   </div>
 </template>
@@ -25,7 +53,7 @@
   margin: 20px;
   display: block;
   font-size: 24px;
-  overflow: scroll;
+  overflow-x: auto;
 }
 </style>
 
@@ -35,44 +63,13 @@
 import * as d3 from "d3";
 
 
-import { ref, computed, onMounted, } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 
 useHead({
   title: 'Escalonamento de tarefas - VisualSO'
 });
 const headers = ["Tarefa", "t1", "t2", "t3", "t4", "t5"];
-const data = [
-  {
-    id: 1, cells: [
-      { id: 1, value: "ingresso" },
-      { id: 2, value: "0" },
-      { id: 3, value: "1" },
-      { id: 4, value: "2" },
-      { id: 5, value: "2" },
-      { id: 6, value: "3" }]
-  },
-  {
-    id: 2, cells: [
-      { id: 7, value: "duração" },
-      { id: 8, value: "5" },
-      { id: 9, value: "2" },
-      { id: 10, value: "4" },
-      { id: 11, value: "1" },
-      { id: 12, value: "2" }
-    ]
-  },
-  {
-    id: 3, cells: [
-      { id: 13, value: "prioridade" },
-      { id: 14, value: "2" },
-      { id: 15, value: "3" },
-      { id: 16, value: "1" },
-      { id: 17, value: "4" },
-      { id: 18, value: "5" }
 
-    ]
-  }
-];
 // cores para usar ao criar prdutores. Também limita o num. de produtores (1 pra cada cor)
 const cores = [
   // "hsl(var(--p))",
@@ -88,7 +85,7 @@ let gridData;
 let canvas;
 let row;
 let col;
-let tarefas = [
+let tarefas = ref([
   {
     ingresso: 0,
     duracao: 5,
@@ -119,7 +116,17 @@ let tarefas = [
     prioridade: 5,
     estado: 0
   },
-];
+]);
+
+
+watch(tarefas, (newTarefas, oldTarefas) => {
+  let tarefas_raw = tarefas.value.map((t) => toRaw(t));
+  let saida = firstComefirstServed(tarefas_raw);
+  let colunas = saida.length;
+  document.getElementById('d3Container').setAttribute("style", "width:" + (colunas * TAM_QUADRADO + 4) + "px");
+  gridData = criaGrid(saida);
+  desenhaGrid(gridData);
+}, { deep: true });
 
 
 /**
@@ -132,8 +139,8 @@ onMounted(() => {
     .attr('width', '100%')
     .attr('height', '100%');
 
-  let saida = firstComefirstServed(tarefas);
-  console.log(saida);
+  let tarefas_raw = tarefas.value.map((t) => toRaw(t));
+  let saida = firstComefirstServed(tarefas_raw);
   let colunas = saida.length;
   document.getElementById('d3Container').setAttribute("style", "width:" + (colunas * TAM_QUADRADO + 4) + "px");
   gridData = criaGrid(saida);
@@ -251,6 +258,25 @@ function getColorByState(estado, lin) {
   if (estado == 0) return ["hsl(var(--b1))", "hsl(var(--b3))"];
   if (estado == 1) return ["hsl(var(--b1))", "hsl(var(--ac))"];
   if (estado == 2) return [cores[lin % cores.length], "hsl(var(--ac))"];
+}
+
+function desenhaGrid(data){
+
+  row = canvas.selectAll(".row")
+    .data(data)
+    .enter().append("g");
+
+  col = row.selectAll(".square")
+    .data(function (d) { return d; })
+    .enter().append("rect")
+    .attr("class", "square")
+    .attr("x", function (d) { return d.x + 2; })
+    .attr("y", function (d) { return d.y * 2 + 2; })
+    .attr("width", function (d) { return d.width; })
+    .attr("height", function (d) { return d.height; })
+    .style("fill", function (d) { return d.cor; })
+    .style("stroke", function (d) { return d.cor_borda; })
+    .attr("stroke-width", 2);
 }
 
 </script>
