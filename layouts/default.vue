@@ -5,15 +5,10 @@ import { ref, watch } from 'vue';
 
 
 let isDark = ref(false);
-// watch(isDark, (a, b) => {
-//   console.log(a, b);
-// });
 
 onMounted(() => {
   themeChange(false);
   isDark.value = document.documentElement.getAttribute('data-theme') === 'dark';
-  // document.getElementById("navbar").focus();
-  // teste = document.documentElement.getAttribute('data-theme') == 'dark_theme';
 })
 
 </script>
@@ -21,7 +16,7 @@ onMounted(() => {
 <template>
   <div class="flex flex-col" style="height: 100vh;">
     <header>
-      <div class="navbar bg-primary text-primary-content hidden md:flex">
+      <div class="navbar bg-primary text-primary-content flex">
         <div class="flex-1">
           <NuxtLink class="btn btn-ghost normal-case text-xl" to="/">VisualSO</NuxtLink>
         </div>
