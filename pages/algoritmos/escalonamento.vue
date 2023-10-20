@@ -1,7 +1,7 @@
 
 <template>
-  <div class="flex flex-col h-full mx-auto">
-    <div class="w-100 md:w-1/2 mr-auto">
+  <div class="grid grid-cols-3 gap-4">
+    <div class="col-span-3 md:col-span-2">
       <table class="table">
         <thead class="bg-base-200">
           <tr>
@@ -30,7 +30,15 @@
         </tbody>
       </table>
     </div>
-    <div class="flex flex-row conteudo">
+    <div class="col-span-3 md:col-span-1 form-control m-auto p-2">
+      <label class="label">
+        <span class="label-text">Selecione o algoritmo de escalonamento a ser sexecutado</span>
+      </label>
+      <select class="select select-bordered" name="algoritmo" id="algoritmo" v-model="algoritmo">
+        <option v-for="(opcao, i) in opcoes" :value="opcao.alg" :selected="i == 0"> {{ opcao.nome }}</option>
+      </select>
+    </div>
+    <div class="col-span-full flex flex-row conteudo">
       <div class="flex flex-col-reverse h-full justify-between mt-2 p-4 pr-0">
         <p>t1</p>
         <p>t2</p>
@@ -39,7 +47,7 @@
         <p>t5</p>
       </div>
       <div style="overflow-y: hidden; overflow-x: scroll;" class="mr-4">
-        <div ref="d3Container" class="m-4" id="d3Container"/>
+        <div ref="d3Container" class="m-4" id="d3Container" />
       </div>
     </div>
   </div>
@@ -56,6 +64,10 @@ thead {
 
 td {
   text-align: center;
+  max-width: 15vw !important;
+  padding: 0.5rem !important;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
 }
 
 .conteudo {
@@ -69,7 +81,6 @@ td {
   height: 100%;
   overflow-x: scroll;
 }
-
 </style>
 
 <script setup>
@@ -96,6 +107,7 @@ const cores = [
 ];
 // constantes com tamanhos dos quadrados, círculos e buffer
 const TAM_QUADRADO = 25;
+
 let gridData;
 let canvas;
 let row = null;
@@ -143,16 +155,36 @@ let tarefas = ref([
   },
 ]);
 
+let opcoes = [
+  {
+    nome: "First-Come, First Served",
+    alg: firstComeFirstServed
+  },
+  {
+    nome: "Prioridade cooperativo",
+    alg: PRIOc
+  },
+  {
+    nome: "Prioridade preemptivo",
+    alg: PRIOp
+  },
+  {
+    nome: "Prioridades dinâmicas",
+    alg: PRIOd
+  },
+];
 
-watch(tarefas, (newTarefas, oldTarefas) => {
-  // copia o objeto observável em um objeto normal
-  let tarefas_raw = tarefas.value.map((t) => toRaw(t));
-  let saida = firstComeFirstServed(tarefas_raw);
-  let conteudo_width = saida.length * TAM_QUADRADO + 4;
-  document.getElementById('d3Container').setAttribute("style", "width:" + conteudo_width + "px");
-  gridData = criaGrid(saida);
-  desenhaGrid(gridData);
+let algoritmo = ref(null);
+
+
+watch(algoritmo, () => {
+  executaAlgoritmo();
+});
+
+watch(tarefas, () => {
+  executaAlgoritmo();
 }, { deep: true });
+
 
 /**
  * Função chamada uma só vez quando a página é montada.
@@ -163,9 +195,28 @@ onMounted(() => {
     .append('svg')
     .attr('width', '100%')
     .attr('height', '100%');
-  // só pra fazer o Vue dar trigger no watch
-  tarefas.value[0].estado = 0;
 })
+
+function executaAlgoritmo() {
+  let algoritmo_raw = algoritmo.value;
+  let tarefas_raw = tarefas.value.map((t) => toRaw(t));
+
+  if (algoritmo_raw == null || tarefas_raw == null)
+    return;
+
+  for (let i = 0; i < tarefas_raw.length; i++) {
+    tarefas_raw[i].prio_dinamica = tarefas_raw[i].prioridade;
+    tarefas_raw[i].processado = 0;
+    tarefas_raw[i].estado = 0;
+  }
+
+  let saida = algoritmo_raw(tarefas_raw);
+  let conteudo_width = saida.length * TAM_QUADRADO + 4;
+  document.getElementById('d3Container').setAttribute("style", "width:" + conteudo_width + "px");
+  gridData = criaGrid(saida);
+  desenhaGrid(gridData);
+}
+
 
 /**
  * Cria um vetor de tarefas para ser passado à criaGrid.
@@ -228,6 +279,167 @@ function firstComeFirstServed(tarefas, indice_atual = -1, tempo = 0) {
     saida.push(r);
   }
   return saida;
+}
+
+function PRIOc(tarefas, indice_atual = -1, tempo = 0) {
+  var tarefas_c = structuredClone(tarefas);  // copia vetor de tarefas
+  var indice;
+  // define indice inicial. Se a tarefa ainda não acabou, usar seu indice 
+  if (indice_atual >= 0 && precisaProcessar(tarefas_c[indice_atual], tempo)) {
+    indice = indice_atual;
+    for (let i = 0; i < tarefas_c.length; i++) {
+      if (indice != i && precisaProcessar(tarefas_c[i], tempo)) {
+        tarefas_c[i].estado = 1;
+      }
+    }
+  } else {
+    indice = -1;
+    // define um indice
+    for (let i = 0; i < tarefas_c.length; i++) {
+      // se a tarefa não precisa ser processada, deixa em 0
+      if (!precisaProcessar(tarefas_c[i], tempo)) {
+        tarefas_c[i].estado = 0;
+      } else {
+        tarefas_c[i].estado = 1;
+        if (indice < 0) { // seleciona uma tarefa qualquer
+          indice = i;
+          tarefas_c[indice].estado = 2;
+        } else if (tarefas_c[i].prioridade > tarefas_c[indice].prioridade) {
+          // atualizo a seleção para a tarefa de maior prioridade
+          tarefas_c[indice].estado = 1;
+          indice = i;
+          tarefas_c[indice].estado = 2;
+        }
+      }
+    }
+  }
+
+  // caso base - não tem mais tarefas a serem feitas
+  if (indice == -1 && !restaTarefa(tarefas_c, tempo))
+    return [];
+
+  // atualiza a duracao e estado do selecionado
+  if (indice >= 0) {
+    tarefas_c[indice].processado += 1;
+    // tarefas_c[indice].estado = 2;
+  }
+
+  var saida = [];
+  var ret = PRIOc(tarefas_c, indice, tempo + 1);
+  // cria um vetor de tarefas e o retorna
+  saida.push(tarefas_c);
+  for (let r of ret) {
+    saida.push(r);
+  }
+  return saida;
+}
+
+
+function PRIOp(tarefas, tempo = 0) {
+  var tarefas_c = structuredClone(tarefas);  // copia vetor de tarefas
+  var indice = -1;
+  // define um indice
+  for (let i = 0; i < tarefas_c.length; i++) {
+    // se a tarefa não precisa ser processada, deixa em 0
+    if (!precisaProcessar(tarefas_c[i], tempo)) {
+      tarefas_c[i].estado = 0;
+    } else {
+      tarefas_c[i].estado = 1;
+      if (indice < 0) { // seleciona uma tarefa qualquer
+        indice = i;
+        tarefas_c[indice].estado = 2;
+      } else if (tarefas_c[i].prioridade > tarefas_c[indice].prioridade) {
+        // atualizo a seleção para a tarefa de maior prioridade
+        tarefas_c[indice].estado = 1;
+        indice = i;
+        tarefas_c[indice].estado = 2;
+      }
+    }
+  }
+
+
+  // caso base - não tem mais tarefas a serem feitas
+  if (indice == -1 && !restaTarefa(tarefas_c, tempo))
+    return [];
+
+  // atualiza a duracao e estado do selecionado
+  if (indice >= 0) {
+    tarefas_c[indice].processado += 1;
+    // tarefas_c[indice].estado = 2;
+  }
+
+  var saida = [];
+  var ret = PRIOp(tarefas_c, tempo + 1);
+  // cria um vetor de tarefas e o retorna
+  saida.push(tarefas_c);
+  for (let r of ret) {
+    saida.push(r);
+  }
+  return saida;
+}
+
+function PRIOd(tarefas, indice_atual = -1, tempo = 0, quantum = 1) {
+  var tarefas_c = structuredClone(tarefas);  // copia vetor de tarefas
+  var indice = indice_atual >= 0 && precisaProcessar(tarefas_c[indice_atual], tempo) ? indice_atual : -1;
+  // define um indice
+  for (let i = 0; i < tarefas_c.length; i++) {
+    // se a tarefa não precisa ser processada, deixa em 0
+    if (!precisaProcessar(tarefas_c[i], tempo)) {
+      tarefas_c[i].estado = 0;
+    } else {
+      tarefas_c[i].estado = 1;
+      if (indice < 0) { // seleciona uma tarefa qualquer
+        indice = i;
+        tarefas_c[indice].estado = 2;
+      } else if (tarefas_c[i].prio_dinamica > tarefas_c[indice].prio_dinamica) {
+        // atualizo a seleção para a tarefa de maior prioridade
+        tarefas_c[indice].estado = 1;
+        indice = i;
+        tarefas_c[indice].estado = 2;
+      }
+    }
+  }
+
+  for (let i = 0; i < tarefas_c.length; i++) {
+    if(tarefas_c[i].estado == 1){
+      tarefas_c[i].prio_dinamica += quantum;
+    }
+    if(tarefas_c[i].estado == 2){
+      tarefas_c[i].prio_dinamica = tarefas_c[i].prioridade;
+    }
+  }
+  
+  // caso base - não tem mais tarefas a serem feitas
+  if (indice == -1 && !restaTarefa(tarefas_c, tempo))
+    return [];
+
+  // atualiza a duracao e estado do selecionado
+  if (indice >= 0) {
+    tarefas_c[indice].processado += 1;
+    tarefas_c[indice].estado = 2;
+    // tarefas_c[indice].prio_dinamica = tarefas_c[indice].prioridade;
+  }
+
+  var saida = [];
+  var ret = PRIOd(tarefas_c, indice, tempo + 1, quantum);
+  // cria um vetor de tarefas e o retorna
+  saida.push(tarefas_c);
+  for (let r of ret) {
+    saida.push(r);
+  }
+  return saida;
+}
+
+function precisaProcessar(tarefa, tempo) {
+  return (tarefa.processado < tarefa.duracao) && (tarefa.ingresso <= tempo);
+}
+
+function restaTarefa(tarefas, tempo) {
+  for (let i = 0; i < tarefas.length; i++) {
+    if (tarefas[i].ingresso > tempo)
+      return true;
+  }
+  return false;
 }
 
 /**
