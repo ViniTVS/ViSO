@@ -39,14 +39,7 @@
       </select>
     </div>
     <div class="col-span-full flex flex-row conteudo">
-      <div class="flex flex-col-reverse h-full justify-between mt-2 p-4 pr-0">
-        <p>t1</p>
-        <p>t2</p>
-        <p>t3</p>
-        <p>t4</p>
-        <p>t5</p>
-      </div>
-      <div style="overflow-y: hidden; overflow-x: scroll;" class="mr-4">
+      <div style="overflow-y: hidden; overflow-x: auto;" class="mr-4">
         <div ref="d3Container" class="m-4" id="d3Container" />
       </div>
     </div>
@@ -72,8 +65,8 @@ td {
 
 .conteudo {
   max-width: 100vw;
-  height: 250px !important;
-  overflow-x: scroll !important;
+  height: 270px !important;
+  overflow-x: auto !important;
   overflow-y: hidden;
 }
 
@@ -154,10 +147,10 @@ let tarefas = ref([
     estado: 0
   },
 ]);
-
+// opções de escolhas de algoritmo para executar
 let opcoes = [
   {
-    nome: "First-Come, First Served",
+    nome: "First Come, First Served",
     alg: firstComeFirstServed
   },
   {
@@ -195,6 +188,14 @@ onMounted(() => {
     .append('svg')
     .attr('width', '100%')
     .attr('height', '100%');
+  // escreve os t's
+  for (let i = 1; i <= 5; i++) {
+    canvas.append("text")
+      .text("t" + (6 - i))
+      .attr("x", 10)
+      .attr("y", TAM_QUADRADO * i * 2 - TAM_QUADRADO - 4) // -4 p/ centralizar o texto (de tam. 8)
+      .attr("text-anchor", "middle");
+  }
 })
 
 function executaAlgoritmo() {
@@ -211,7 +212,7 @@ function executaAlgoritmo() {
   }
 
   let saida = algoritmo_raw(tarefas_raw);
-  let conteudo_width = saida.length * TAM_QUADRADO + 4;
+  let conteudo_width = saida.length * TAM_QUADRADO + 4 + TAM_QUADRADO;
   document.getElementById('d3Container').setAttribute("style", "width:" + conteudo_width + "px");
   gridData = criaGrid(saida);
   desenhaGrid(gridData);
@@ -219,9 +220,11 @@ function executaAlgoritmo() {
 
 
 /**
- * Cria um vetor de tarefas para ser passado à criaGrid.
+ * Cria um vetor de tarefas para ser passado à criaGrid usando o algoritimo 
+ * First Come, First Served.
  * 
- * @param {Array} tarefas Vetor de objetos com campos ingresso, duracao, prioridade e estado
+ * @param {Array} tarefas Vetor de objetos com campos ingresso, duracao, prioridade, 
+ * estado, prio_dinamica e processado. 
  * @param {Int} indice_atual Índice da última tarefa executada. Por padrão é -1.
  * @param {Int} tempo Tempo de execução do algoritmo. Por padrão é 0.
  * 
@@ -281,6 +284,17 @@ function firstComeFirstServed(tarefas, indice_atual = -1, tempo = 0) {
   return saida;
 }
 
+/**
+ * Cria um vetor de tarefas para ser passado à criaGrid usando a lógica do escalodor por
+ * prioridade cooperativo.
+ * 
+ * @param {Array} tarefas Vetor de objetos com campos ingresso, duracao, prioridade, 
+ * estado, prio_dinamica e processado.  
+ * @param {Int} indice_atual Índice da última tarefa executada. Por padrão é -1.
+ * @param {Int} tempo Tempo de execução do algoritmo. Por padrão é 0.
+ * 
+ * @returns Vetor de tarefas com campo estado atualizado.
+ */
 function PRIOc(tarefas, indice_atual = -1, tempo = 0) {
   var tarefas_c = structuredClone(tarefas);  // copia vetor de tarefas
   var indice;
@@ -334,7 +348,16 @@ function PRIOc(tarefas, indice_atual = -1, tempo = 0) {
   return saida;
 }
 
-
+/**
+ * Cria um vetor de tarefas para ser passado à criaGrid usando a lógica do escalodor por
+ * prioridade preemptivo.
+ * 
+ * @param {Array} tarefas Vetor de objetos com campos ingresso, duracao, prioridade, 
+ * estado, prio_dinamica e processado.  
+ * @param {Int} tempo Tempo de execução do algoritmo. Por padrão é 0.
+ * 
+ * @returns Vetor de tarefas com campo estado atualizado.
+ */
 function PRIOp(tarefas, tempo = 0) {
   var tarefas_c = structuredClone(tarefas);  // copia vetor de tarefas
   var indice = -1;
@@ -378,7 +401,21 @@ function PRIOp(tarefas, tempo = 0) {
   return saida;
 }
 
-function PRIOd(tarefas, indice_atual = -1, tempo = 0, quantum = 1) {
+/**
+ * Cria um vetor de tarefas para ser passado à criaGrid usando a lógica do escalodor por
+ * prioridades dinâmicas. Diferente da lógica utilizada no livro do Maziero, aqui o valor
+ * da prioridade dinâmica é atualizado a cada quantum.
+ * 
+ * @param {Array} tarefas Vetor de objetos com campos ingresso, duracao, prioridade, 
+ * estado, prio_dinamica e processado.  
+ * @param {Int} indice_atual Índice da última tarefa executada. Por padrão é -1.
+ * @param {Int} tempo Tempo de execução do algoritmo. Por padrão é 0.
+ * @param {Int} peso Valor em que cada prioridade dinâmica da tarefa deve ser acrescido por quantum.
+ * Por padrão é 1.
+ * 
+ * @returns Vetor de tarefas com campo estado atualizado.
+ */
+function PRIOd(tarefas, indice_atual = -1, tempo = 0, peso = 1) {
   var tarefas_c = structuredClone(tarefas);  // copia vetor de tarefas
   var indice = indice_atual >= 0 && precisaProcessar(tarefas_c[indice_atual], tempo) ? indice_atual : -1;
   // define um indice
@@ -401,14 +438,14 @@ function PRIOd(tarefas, indice_atual = -1, tempo = 0, quantum = 1) {
   }
 
   for (let i = 0; i < tarefas_c.length; i++) {
-    if(tarefas_c[i].estado == 1){
-      tarefas_c[i].prio_dinamica += quantum;
+    if (tarefas_c[i].estado == 1) {
+      tarefas_c[i].prio_dinamica += peso;
     }
-    if(tarefas_c[i].estado == 2){
+    if (tarefas_c[i].estado == 2) {
       tarefas_c[i].prio_dinamica = tarefas_c[i].prioridade;
     }
   }
-  
+
   // caso base - não tem mais tarefas a serem feitas
   if (indice == -1 && !restaTarefa(tarefas_c, tempo))
     return [];
@@ -421,7 +458,7 @@ function PRIOd(tarefas, indice_atual = -1, tempo = 0, quantum = 1) {
   }
 
   var saida = [];
-  var ret = PRIOd(tarefas_c, indice, tempo + 1, quantum);
+  var ret = PRIOd(tarefas_c, indice, tempo + 1, peso);
   // cria um vetor de tarefas e o retorna
   saida.push(tarefas_c);
   for (let r of ret) {
@@ -430,10 +467,30 @@ function PRIOd(tarefas, indice_atual = -1, tempo = 0, quantum = 1) {
   return saida;
 }
 
+/**
+ * Função auxiliar para dizer se uma tarefa ainda precisa ser executada ou 
+ * se ainda não entrou na fila/já foi processado o tempo necessário.
+ * 
+ * @param {Object} tarefa Tarefa a ser avaliada, de campos ingresso, duracao, prioridade, 
+ * estado, prio_dinamica e processado. 
+ * @param {Int} tempo Tempo atual do algoritmo sendo executado.
+ * 
+ * @returns true se tarefa precisa ser executada, false caso contrário.
+ */
 function precisaProcessar(tarefa, tempo) {
   return (tarefa.processado < tarefa.duracao) && (tarefa.ingresso <= tempo);
 }
 
+/**
+ * Função auxiliar para avaliar se em um tempo futuro ainda "entrará" uma tarefa
+ * na fila.
+ * 
+ * @param {Object} tarefas Vetor de tarefas a ser avaliado, de campos ingresso, duracao, prioridade, 
+ * estado, prio_dinamica e processado. 
+ * @param {Int} tempo Tempo atual do algoritmo sendo executado.
+ * 
+ * @returns true se ainda existe(m) tarefa(s), false caso contrário.
+ */
 function restaTarefa(tarefas, tempo) {
   for (let i = 0; i < tarefas.length; i++) {
     if (tarefas[i].ingresso > tempo)
@@ -464,7 +521,7 @@ function criaGrid(tarefas) {
       const estado = tarefas[j][linhas - 1 - i].estado;
       const [cor, borda] = getColorByState(estado, i);
       aux[j] = {
-        x: TAM_QUADRADO * j,
+        x: TAM_QUADRADO * j + TAM_QUADRADO,
         y: TAM_QUADRADO * i,
         width: TAM_QUADRADO,
         height: TAM_QUADRADO,
