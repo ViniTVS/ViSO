@@ -37,6 +37,10 @@
       <select class="select select-bordered" name="algoritmo" id="algoritmo" v-model="algoritmo">
         <option v-for="(opcao, i) in opcoes" :value="opcao.alg" :selected="i == 0"> {{ opcao.nome }}</option>
       </select>
+      <div v-if="algoritmo == roundRobin" class="flex flex-row mt-4">
+        <p>Valor do <i>quantum</i>:</p>
+        <input class="w-10 ml-4" type="number" min="0" v-model="quantum">
+      </div>
     </div>
     <div class="col-span-full flex flex-row conteudo">
       <div style="overflow-y: hidden; overflow-x: auto;" class="mr-4">
@@ -80,8 +84,6 @@ td {
 
 
 import * as d3 from "d3";
-
-
 import { ref, onMounted, watch } from 'vue';
 
 useHead({
@@ -105,6 +107,7 @@ let gridData;
 let canvas;
 let row = null;
 let col = null;
+let quantum = ref(2);
 let tarefas = ref([
   {
     ingresso: 0,
@@ -154,6 +157,10 @@ let opcoes = [
     alg: firstComeFirstServed
   },
   {
+    nome: "Round-Robin",
+    alg: roundRobin
+  },
+  {
     nome: "Prioridade cooperativo",
     alg: PRIOc
   },
@@ -171,6 +178,10 @@ let algoritmo = ref(null);
 
 
 watch(algoritmo, () => {
+  executaAlgoritmo();
+});
+
+watch(quantum, () => {
   executaAlgoritmo();
 });
 
@@ -194,7 +205,8 @@ onMounted(() => {
       .text("t" + (6 - i))
       .attr("x", 10)
       .attr("y", TAM_QUADRADO * i * 2 - TAM_QUADRADO - 4) // -4 p/ centralizar o texto (de tam. 8)
-      .attr("text-anchor", "middle");
+      .attr("text-anchor", "middle")
+      .attr("fill", "hsl(var(--bc))");
   }
 })
 
@@ -404,13 +416,13 @@ function PRIOp(tarefas, tempo = 0) {
 /**
  * Cria um vetor de tarefas para ser passado à criaGrid usando a lógica do escalodor por
  * prioridades dinâmicas. Diferente da lógica utilizada no livro do Maziero, aqui o valor
- * da prioridade dinâmica é atualizado a cada quantum.
+ * da prioridade dinâmica é atualizado a cada intervalo de tempo.
  * 
  * @param {Array} tarefas Vetor de objetos com campos ingresso, duracao, prioridade, 
  * estado, prio_dinamica e processado.  
  * @param {Int} indice_atual Índice da última tarefa executada. Por padrão é -1.
  * @param {Int} tempo Tempo de execução do algoritmo. Por padrão é 0.
- * @param {Int} peso Valor em que cada prioridade dinâmica da tarefa deve ser acrescido por quantum.
+ * @param {Int} peso Valor em que cada prioridade dinâmica da tarefa deve ser acrescido.
  * Por padrão é 1.
  * 
  * @returns Vetor de tarefas com campo estado atualizado.
@@ -468,6 +480,67 @@ function PRIOd(tarefas, indice_atual = -1, tempo = 0, peso = 1) {
 }
 
 /**
+ * Cria um vetor de tarefas para ser passado à criaGrid usando Round-Robin. O valor utilizado
+ * como quantum é definido pela variável observável quantum.
+ * 
+ * @param {Array} lista_tarefas Vetor de objetos com campos ingresso, duracao, prioridade, 
+ * estado, prio_dinamica e processado.
+ * 
+ * @returns Vetor de tarefas com campo estado atualizado.
+ */
+function roundRobin(lista_tarefas) {
+  let tempo = 0;
+  let processado = 0;
+  let pilha = new Array();
+  var saida = [];
+  var tarefas = lista_tarefas;
+
+  while (restaTarefa(tarefas, tempo)) {
+    let i;
+    // verifica tarefas para adicionar na pilha
+    for (i = 0; i < tarefas.length; i++) {
+      tarefas[i].estado = 0;
+      if (precisaProcessar(tarefas[i], tempo) && !pilha.includes(i)) {
+        pilha.push(i);
+      }
+    }
+
+    if (pilha.length > 0) {
+      let atual = pilha[0];
+      // tarefa processou a quantidade de quantum permitida ou já processou tudo
+      if (processado >= quantum.value || !precisaProcessar(tarefas[atual], tempo)) {
+        // tira o topo
+        pilha = pilha.slice(1);
+        processado = 1;
+        // coloca de volta no fim se ainda foi necessário
+        if (precisaProcessar(tarefas[atual], tempo)) {
+          pilha.push(atual);
+        }
+      } else {
+        processado++;
+      }
+    } else { // pilha de tarefas ficou vazia, então não processou nada
+      processado = 0;
+    }
+
+    // atualiza o estado das tarefas, se estiver na primeira posição da pilha, está ativa,
+    // enquanto nas demais está "em espera"
+    for (i of pilha) {
+      tarefas[i].estado = 1;
+    }
+    if (pilha.length > 0) {
+      tarefas[pilha[0]].estado = 2;
+      tarefas[pilha[0]].processado++;
+    }
+
+    saida.push(structuredClone(tarefas));
+    tempo++;
+  }
+
+  return saida;
+}
+
+/**
  * Função auxiliar para dizer se uma tarefa ainda precisa ser executada ou 
  * se ainda não entrou na fila/já foi processado o tempo necessário.
  * 
@@ -483,7 +556,7 @@ function precisaProcessar(tarefa, tempo) {
 
 /**
  * Função auxiliar para avaliar se em um tempo futuro ainda "entrará" uma tarefa
- * na fila.
+ * na fila ou se alguma tarefa ainda não foi totalmente processada.
  * 
  * @param {Object} tarefas Vetor de tarefas a ser avaliado, de campos ingresso, duracao, prioridade, 
  * estado, prio_dinamica e processado. 
@@ -493,7 +566,7 @@ function precisaProcessar(tarefa, tempo) {
  */
 function restaTarefa(tarefas, tempo) {
   for (let i = 0; i < tarefas.length; i++) {
-    if (tarefas[i].ingresso > tempo)
+    if (tarefas[i].ingresso > tempo || precisaProcessar(tarefas[i], tempo))
       return true;
   }
   return false;
@@ -538,9 +611,9 @@ function criaGrid(tarefas) {
 }
 
 function getColorByState(estado, lin) {
-  if (estado == 0) return ["hsl(var(--b1))", "hsl(var(--b3))"];
+  if (estado == 0) return ["hsl(var(--b1))", "hsl(var(--nc))"];
   if (estado == 1) return ["hsl(var(--b1))", "hsl(var(--ac))"];
-  if (estado == 2) return [cores[lin % cores.length], "hsl(var(--ac))"];
+  return [cores[lin % cores.length], "hsl(var(--ac))"];
 }
 
 function desenhaGrid(data) {
