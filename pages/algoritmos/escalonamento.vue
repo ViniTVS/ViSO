@@ -39,7 +39,7 @@
       </select>
       <div v-if="algoritmo == roundRobin" class="flex flex-row mt-4">
         <p>Valor do <i>quantum</i>:</p>
-        <input class="w-10 ml-4" type="number" min="0" v-model="quantum">
+        <input class="w-10 ml-4" type="number" min="1" v-model="quantum">
       </div>
     </div>
     <div class="col-span-full flex flex-row conteudo">
@@ -155,6 +155,10 @@ let opcoes = [
   {
     nome: "First Come, First Served",
     alg: firstComeFirstServed
+  },
+  {
+    nome: "Shortest Job First",
+    alg: shortestJobFirst
   },
   {
     nome: "Round-Robin",
@@ -531,6 +535,55 @@ function roundRobin(lista_tarefas) {
     if (pilha.length > 0) {
       tarefas[pilha[0]].estado = 2;
       tarefas[pilha[0]].processado++;
+    }
+
+    saida.push(structuredClone(tarefas));
+    tempo++;
+  }
+
+  return saida;
+}
+
+/**
+ * Cria um vetor de tarefas para ser passado à criaGrid usando Shortest Job First.
+ * 
+ * @param {Array} lista_tarefas Vetor de objetos com campos ingresso, duracao, prioridade, 
+ * estado, prio_dinamica e processado.
+ * 
+ * @returns Vetor de tarefas com campo estado atualizado.
+ */
+function shortestJobFirst(tarefas) {
+  var saida = [];
+  let tempo = 0;
+  let indice = -1; // indice da tarefa atual
+  let troca = true; // devemos trocar a tarefa atual p/ uma nova?
+
+  while (restaTarefa(tarefas, tempo)) {
+    // verifica cada tarefa para atualizar seu estado
+    for (let i in tarefas) {
+      if (precisaProcessar(tarefas[i], tempo)) {
+        tarefas[i].estado = 1;
+        // se devemos trocar, pegamos a de menor duracao 
+        if (troca && (indice < 0 || tarefas[i].duracao < tarefas[indice].duracao)) {
+          indice = i;
+        }
+      } else {
+        tarefas[i].estado = 0;
+      }
+    }
+    // escolhida uma tarefa, processa e atualiza estado
+    if (indice >= 0) {
+      tarefas[indice].processado++;
+      tarefas[indice].estado = 2;
+      // não tem mais o que processar, então devemos trocar prox. iteração
+      if (!precisaProcessar(tarefas[indice], tempo)) {
+        indice = -1;
+        troca = true;
+      } else {
+        troca = false;
+      }
+    } else {
+      troca = true;
     }
 
     saida.push(structuredClone(tarefas));
