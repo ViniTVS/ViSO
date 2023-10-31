@@ -20,7 +20,7 @@ useHead({
       <h2>Animações</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
         <div class="card card-compact w-full bg-base-100 shadow-xl">
-          <figure><img src="produtor.png" alt="Shoes" /></figure>
+          <figure><img src="/produtor.png" alt="Shoes" /></figure>
           <div class="card-body">
             <h2 class="card-title">Sistema Produtor-consumidor</h2>
             <p>
@@ -30,7 +30,7 @@ useHead({
           </div>
         </div>
         <div class="card card-compact w-full bg-base-100 shadow-xl">
-          <figure><img src="tarefas.png" alt="Shoes" /></figure>
+          <figure><img src="/tarefas.png" alt="Shoes" /></figure>
           <div class="card-body">
             <h2 class="card-title">Escalonamento de tarefas</h2>
             <p>
