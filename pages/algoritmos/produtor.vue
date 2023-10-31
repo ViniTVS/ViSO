@@ -1,6 +1,6 @@
 
 <template>
-  <div class="flex flex-col" style="height: 100%;">
+  <main class="flex flex-col" style="height: 100%;">
     <div class="grow" ref="d3Container" id="d3Container"></div>
     <div id="comandos" class=" m-auto" style="height: 60px;">
       <div class="join">
@@ -10,7 +10,7 @@
         <button class="btn btn-primary join-item" @click="remove(consumidores)">Remove Consumidor</button>
       </div>
     </div>
-  </div>
+  </main>
 </template>
   
 
