@@ -18,28 +18,33 @@ useHead({
 
     <section id="explorar">
       <h2>Animações</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
-        <div class="card card-compact w-full bg-base-100 shadow-xl">
-          <figure><img src="/produtor.png" alt="Shoes" /></figure>
-          <div class="card-body">
-            <h2 class="card-title">Sistema Produtor-consumidor</h2>
-            <p>
-              Um sistema produtor-consumidor, é um padrão de comunicação entre processos ou <i>threads</i> em um
-              ambiente concorrente, usado para facilitar a troca de dados entre diferentes <i>threads</i> de um programa.
-            </p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 my-4">
+        <NuxtLink to="/algoritmos/produtor">
+          <div class="card card-compact w-full bg-base-100 shadow-xl">
+            <figure><img src="/produtor.png" alt="Shoes" /></figure>
+            <div class="card-body">
+              <h2 class="card-title">Sistema Produtor-consumidor</h2>
+              <p>
+                Um sistema produtor-consumidor, é um padrão de comunicação entre processos ou <i>threads</i> em um
+                ambiente concorrente, usado para facilitar a troca de dados entre diferentes <i>threads</i> de um
+                programa.
+              </p>
+            </div>
           </div>
-        </div>
-        <div class="card card-compact w-full bg-base-100 shadow-xl">
-          <figure><img src="/tarefas.png" alt="Shoes" /></figure>
-          <div class="card-body">
-            <h2 class="card-title">Escalonamento de tarefas</h2>
-            <p>
-              Um escalonador de tarefas é um componente do sistema operacional responsável por gerenciar o uso do 
-              processador por múltiplos processos ou <i>threads</i> concorrentemente, determinando a ordem em que 
-              os processos são executados e quanto tempo cada um deles pode utilizar a CPU.
-            </p>
+        </NuxtLink>
+        <NuxtLink to="/algoritmos/escalonamento">
+          <div class="card card-compact w-full bg-base-100 shadow-xl">
+            <figure><img src="/tarefas.png" alt="Shoes" /></figure>
+            <div class="card-body">
+              <h2 class="card-title">Escalonamento de tarefas</h2>
+              <p>
+                Um escalonador de tarefas é um componente do sistema operacional responsável por gerenciar o uso do
+                processador por múltiplos processos ou <i>threads</i> concorrentemente, determinando a ordem em que
+                os processos são executados e quanto tempo cada um deles pode utilizar a CPU.
+              </p>
+            </div>
           </div>
-        </div>
+        </NuxtLink>
       </div>
     </section>
 
