@@ -15,10 +15,9 @@ useHead({
         aprendizagem de Sistemas Operacionais mais interativa e imersiva.</p>
     </header>
 
-
-    <section id="explorar">
+    <section id="explorar" class="mx-2">
       <h2>Animações</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 my-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 my-4 mx-2">
         <NuxtLink to="/algoritmos/produtor">
           <div class="card card-compact w-full bg-base-100 shadow-xl">
             <figure><img src="/produtor.png" alt="Shoes" /></figure>

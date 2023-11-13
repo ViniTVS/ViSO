@@ -16,6 +16,9 @@ let opcoes_dropdown = [
 onMounted(() => {
   themeChange(false);
   isDark.value = document.documentElement.getAttribute('data-theme') === 'dark';
+  if(!isDark.value){ // garantir que a página tenha tema
+    document.documentElement.setAttribute('data-theme', 'light');
+  }
 })
 
 // fecha menu de dropdown ao perder foco ou escolher uma opção
