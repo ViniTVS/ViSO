@@ -2,10 +2,22 @@
 <template>
   <main class="flex flex-col" style="height: 100%;">
     <div class="grow" ref="d3Container" id="d3Container"></div>
-    <div id="comandos" class=" m-auto" style="height: 60px;">
+    <div id="comandos" class="w-full flex justify-around items-end p-4" style="height: 100px;">
       <div class="join">
         <button class="btn btn-primary join-item" @click="criaProdutor">Adiciona produtor</button>
         <button class="btn btn-primary join-item" @click="remove(produtores)">Remove produtor</button>
+      </div>
+
+      <div class="form-control w-100 max-w-xs">
+        <label class="label">
+          <span class="label-text">Velocidade de animação</span>
+        </label>
+        <select class="select select-bordered" name="velocidade" id="velocidade" v-model="velocidade">
+          <option v-for="opcao in opcoes_vel" :value="1/opcao" :selected="opcao == 1"> {{ opcao }}</option>
+        </select>
+      </div>
+
+      <div class="join">
         <button class="btn btn-primary join-item" @click="criaConsumidor">Adiciona Consumidor</button>
         <button class="btn btn-primary join-item" @click="remove(consumidores)">Remove Consumidor</button>
       </div>
@@ -70,8 +82,11 @@ let canvas = null;
 // sendo que cada uma das posições são um vetor ([coordenada_x, coordenada_y])
 let consumidores = [];
 let produtores = [];
+let leg_prod = null;
+let leg_buff = null;
+let leg_cons = null;
 // se ainda estiver fazendo animação não permitir que adicione/remova do buffer
-let animacao = false; 
+let animacao = false;
 let buffer = {
   indice_c: 0,
   indice_p: 0,
@@ -81,11 +96,26 @@ let buffer = {
 };
 let containerW = ref(null);
 let containerH = ref(null);
-let rotulos = ref({
-  obj: [],
-  texto: ["Produtor", "Buffer", "Consumidor"]
-});
 
+let fila_prod = ref([]);
+let fila_cons = ref([]);
+
+let opcoes_vel = [
+  0.25,
+  0.5,
+  0.75,
+  1,
+  1.25,
+  1.5,
+  1.75,
+  2,
+];
+
+let velocidade = ref(1.0);
+
+watch(fila_prod, () => {
+
+});
 
 watch(containerW, () => {
   desenhaProdutores();
@@ -117,6 +147,16 @@ onMounted(() => {
     .attr("fill", "hsl(var(--ac))")
     .attr("stroke", "hsl(var(--ac))");
   canvas.call(arrow);
+  // textos de legendas
+  leg_prod = canvas.append("text").attr("text-anchor", "middle")
+    .attr("dx", containerW.value / 8).attr("dy", 20)
+    .text("Produtores");
+  leg_buff = canvas.append("text").attr("text-anchor", "middle")
+    .attr("dx", containerW.value / 2).attr("dy", 20)
+    .text("Buffer");
+  leg_cons = canvas.append("text").attr("text-anchor", "middle")
+    .attr("dx", containerW.value * 7 / 8).attr("dy", 20)
+    .text("Consumidores");
   // cria 2 produtores, buffer e 3 consumidores
   criaProdutor();
   criaProdutor();
@@ -179,9 +219,9 @@ function desenhaConsumidores() {
  */
 function posicionaCirculo(item, nome, pos_x, pos_y, seta_ini, seta_fim) {
   item.objeto // atualiza a pos. do item
-    .transition().duration(250).attr("cx", pos_x).attr("cy", pos_y);
+    .transition().duration(velocidade.value * 250).attr("cx", pos_x).attr("cy", pos_y);
   item.texto // atualiza o texto do item
-    .transition().duration(250).text(nome)
+    .transition().duration(velocidade.value * 250).text(nome)
     .attr("dx", pos_x).attr("dy", pos_y + 8);
   // cria a seta se ainda não fora feito
   if (item.seta == null) {
@@ -191,7 +231,7 @@ function posicionaCirculo(item, nome, pos_x, pos_y, seta_ini, seta_fim) {
       .attr("stroke-width", 2);
   }
   item.seta // faz animação da seta p nova pos. e atualiza pos_seta
-    .transition().duration(250)
+    .transition().duration(velocidade.value * 250)
     .attr("stroke", "hsl(var(--ac))")
     .attr("points", [seta_ini, seta_fim]);
   item.pos_seta = [seta_ini, seta_fim];
@@ -205,15 +245,13 @@ function posicionaCirculo(item, nome, pos_x, pos_y, seta_ini, seta_fim) {
  * @param {Object} event Evento que se é passado pelo d3.js para execução.
  */
 function clickProdutor(event) {
-  if (animacao)
-    return;
-
-  animacao = true;
-  // verifica se o buffer está cheio
-  if (buffer.usado >= TAM_BUFFER) {
-    // trata quando o buffer estiver cheio
+  if (animacao || buffer.usado >= TAM_BUFFER) {
+    fila_prod.value.push(event);
     return;
   }
+
+  animacao = true;
+
   let index = parseInt(event.srcElement.id);
   let pos_seta = produtores[index].pos_seta;
   // a posição inicial do quadradinho é o meio da seta - TAM_QUADRADO / 2 pra centralizar
@@ -230,7 +268,7 @@ function clickProdutor(event) {
     .attr("x", pos_x1)
     .attr("y", pos_y1);
   item // faz animação até o final da seta
-    .transition().delay(250).duration(1000)
+    .transition().delay(velocidade.value * 250).duration(velocidade.value * 1000)
     .attr("x", containerW.value / 2 - LARG_BUFFER / 2)
     .attr("y", pos_seta[1][1] - (TAM_QUADRADO + 10));
   // atualiza conteúdo do buffer, o num de elementos usados e 
@@ -239,9 +277,7 @@ function clickProdutor(event) {
   buffer.usado += 1;
   buffer.indice_p = (buffer.indice_p + 1) % TAM_BUFFER;
   desenhaBuffer(1250);
-  setTimeout(() => {
-    animacao = false;
-  }, 1750);
+  liberaBuffer(velocidade.value * 1750);
 }
 
 /**
@@ -252,36 +288,54 @@ function clickProdutor(event) {
  * @param {object} event Evento que se é passado pelo d3.js para execução.
  */
 function clickConsumidor(event) {
-  if (animacao)
-    return;
-  animacao = true;
-  // verifica se o buffer está cheio
-  if (buffer.usado == 0) {
-    // trata quando o buffer estiver vazio
+  // está em animação ou buffer vazio
+  if (animacao || buffer.usado == 0) {
+    fila_cons.value.push(event);
     return;
   }
+  animacao = true;
+
   let index = parseInt(event.srcElement.id);
   let item = buffer.conteudo[buffer.indice_c];
   buffer.conteudo[buffer.indice_c] = null;
   let pos_seta = consumidores[index].pos_seta;
-  item.transition().duration(500)
+  item.transition().duration(velocidade.value * 500)
     .attr("x", pos_seta[0][0] - (TAM_QUADRADO / 2))
     .attr("y", pos_seta[0][1] - (TAM_QUADRADO * 3 / 2));
-  item.transition().delay(500).duration(1000)
+  item.transition().delay(velocidade.value * 500).duration(velocidade.value * 1000)
     .attr("x", pos_seta[1][0] - (TAM_QUADRADO / 2))
     .attr("y", pos_seta[1][1] - (TAM_QUADRADO * 3 / 2));
-  item.transition().delay(1500).duration(500)
+  item.transition().delay(velocidade.value * 1500).duration(velocidade.value * 500)
     .attr("x", pos_seta[1][0] + (10 + TAM_CIRCULO / 2))
     .attr("y", pos_seta[1][1] - TAM_CIRCULO / 2)
     .remove();
 
   buffer.indice_c = (buffer.indice_c + 1) % TAM_BUFFER;
   buffer.usado -= 1;
+  liberaBuffer(velocidade.value * 2000);
+}
+
+/**
+ * Cria um timeout que ao executar libera o estado de animação e caso tenha elementos na fila de 
+ * produtores ou consumidores realiza a animação dos mesmos. 
+ * Como as animações são executadas novamente, acaba se criando uma recursão, que faz com que o 
+ * algoritmo dê preferência de esvaziar a fila de produtores antes da fila de consumidores.
+ * @param {Number} tempo Tempo de espera para se chamar o timeout. 
+ */
+function liberaBuffer(tempo) {
   setTimeout(() => {
     animacao = false;
-  }, 2000);
-
+    if (fila_prod.value.length > 0) {
+      let evento = fila_prod.value.shift();
+      clickProdutor(evento);
+    }
+    if (fila_cons.value.length > 0) {
+      let evento = fila_cons.value.shift();
+      clickConsumidor(evento);
+    }
+  }, tempo);
 }
+
 
 /**
  * Desenha o buffer e os itens nele.
@@ -290,6 +344,12 @@ function clickConsumidor(event) {
  * no buffer.
  */
 function desenhaBuffer(delay_animacao = 0) {
+  // atualiza legendas
+  leg_prod.attr("dx", containerW.value / 8).attr("dy", 20);
+  leg_buff.attr("dx", containerW.value / 2).attr("dy", 20);
+  leg_cons.attr("dx", containerW.value * 7 / 8).attr("dy", 20);
+
+
   if (buffer.objeto == null) { // cria buffer
     buffer.objeto = canvas.append("rect")
       .attr("width", LARG_BUFFER)
@@ -304,7 +364,7 @@ function desenhaBuffer(delay_animacao = 0) {
   // então é no meio da tela - metade do tamanho do objeto
   buffer.objeto
     .transition()
-    .duration(500)
+    .duration(velocidade.value * 500)
     .attr("width", LARG_BUFFER)
     .attr("height", ALT_BUFFER.value)
     .attr("x", containerW.value / 2 - LARG_BUFFER / 2)
@@ -331,8 +391,8 @@ function desenhaBuffer(delay_animacao = 0) {
 
     buffer.conteudo[i]
       .transition()
-      .delay(delay_animacao)
-      .duration(500)
+      .delay(velocidade.value * delay_animacao)
+      .duration(velocidade.value * 500)
       .attr("x", pos_x)
       .attr("y", pos_y);
   }
@@ -361,6 +421,8 @@ function criaProdutor() {
  * Cria objeto de um consumidor.
  */
 function criaConsumidor() {
+  if (consumidores.length >= cores.length)
+    return;
   let c = criaObjeto(
     containerW.value * 7 / 8,
     containerH.value + 100,
