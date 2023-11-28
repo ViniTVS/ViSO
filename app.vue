@@ -4,9 +4,7 @@ const route = useRoute()
 
 <template>
 	<NuxtLayout>
-		<!-- <div> -->
 		<NuxtLoadingIndicator />
 		<NuxtPage />
-		<!-- </div> -->
 	</NuxtLayout>
 </template>
