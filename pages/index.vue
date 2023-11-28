@@ -53,7 +53,7 @@ useHead({
 <style>
 h1 {
   font-size: 5rem;
-  background-image: linear-gradient(90deg, hsl(var(--a)), hsl(var(--p)) 90%);
+  background-image: linear-gradient(90deg, oklch(var(--a)), oklch(var(--p)) 90%);
   background-clip: text;
   color: transparent;
   font-weight: bolder;

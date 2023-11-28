@@ -4,8 +4,8 @@
     <div class="grow" ref="d3Container" id="d3Container"></div>
     <div id="comandos" class="w-full flex justify-around items-end p-4" style="height: 100px;">
       <div class="join">
-        <button class="btn btn-primary join-item" @click="criaProdutor">Adiciona produtor</button>
-        <button class="btn btn-primary join-item" @click="remove(produtores)">Remove produtor</button>
+        <button class="btn btn-primary join-item" @click="criaProdutor">adicionar produtor</button>
+        <button class="btn btn-primary join-item" @click="remove(produtores)">remover produtor</button>
       </div>
 
       <div class="form-control w-100 max-w-xs">
@@ -18,8 +18,8 @@
       </div>
 
       <div class="join">
-        <button class="btn btn-primary join-item" @click="criaConsumidor">Adiciona Consumidor</button>
-        <button class="btn btn-primary join-item" @click="remove(consumidores)">Remove Consumidor</button>
+        <button class="btn btn-primary join-item" @click="criaConsumidor">adicionar consumidor</button>
+        <button class="btn btn-primary join-item" @click="remove(consumidores)">remover consumidor</button>
       </div>
     </div>
   </main>
@@ -52,12 +52,11 @@ useHead({
 
 // cores para usar ao criar prdutores. Também limita o num. de produtores (1 pra cada cor)
 const cores = [
-  // "hsl(var(--p))",
-  "hsl(var(--s))",
-  "hsl(var(--su))",
-  "hsl(var(--in))",
-  "hsl(var(--wa))",
-  "hsl(var(--er))",
+  "oklch(var(--s))",
+  "oklch(var(--su))",
+  "oklch(var(--in))",
+  "oklch(var(--wa))",
+  "oklch(var(--er))",
 ];
 // constantes com tamanhos dos quadrados, círculos e buffer
 const TAM_QUADRADO = 50;
@@ -144,18 +143,21 @@ onMounted(() => {
   // e adiciona a possibilidade de setas
   const arrow = d3a.arrow1()
     .id("my-arrow")
-    .attr("fill", "hsl(var(--ac))")
-    .attr("stroke", "hsl(var(--ac))");
+    .attr("fill", "oklch(var(--bc))")
+    .attr("stroke", "oklch(var(--bc))");
   canvas.call(arrow);
   // textos de legendas
   leg_prod = canvas.append("text").attr("text-anchor", "middle")
     .attr("dx", containerW.value / 8).attr("dy", 20)
+    .style("fill", "oklch(var(--bc))")
     .text("Produtores");
   leg_buff = canvas.append("text").attr("text-anchor", "middle")
     .attr("dx", containerW.value / 2).attr("dy", 20)
+    .style("fill", "oklch(var(--bc))")
     .text("Buffer");
   leg_cons = canvas.append("text").attr("text-anchor", "middle")
     .attr("dx", containerW.value * 7 / 8).attr("dy", 20)
+    .style("fill", "oklch(var(--bc))")
     .text("Consumidores");
   // cria 2 produtores, buffer e 3 consumidores
   criaProdutor();
@@ -227,12 +229,12 @@ function posicionaCirculo(item, nome, pos_x, pos_y, seta_ini, seta_fim) {
   if (item.seta == null) {
     item.seta = canvas.append("polyline")
       .attr("marker-end", "url(#my-arrow)")
-      .attr("stroke", "hsl(var(--ac))")
+      .attr("stroke", "oklch(var(--bc))")
       .attr("stroke-width", 2);
   }
   item.seta // faz animação da seta p nova pos. e atualiza pos_seta
     .transition().duration(velocidade.value * 250)
-    .attr("stroke", "hsl(var(--ac))")
+    .attr("stroke", "oklch(var(--bc))")
     .attr("points", [seta_ini, seta_fim]);
   item.pos_seta = [seta_ini, seta_fim];
 }
@@ -263,7 +265,7 @@ function clickProdutor(event) {
     .attr("width", TAM_QUADRADO)
     .attr("height", TAM_QUADRADO)
     .attr("stroke-width", 4)
-    .style("stroke", "hsl(var(--ac))")
+    .style("stroke", "oklch(var(--bc))")
     .style("fill", cores[index])
     .attr("x", pos_x1)
     .attr("y", pos_y1);
@@ -355,8 +357,8 @@ function desenhaBuffer(delay_animacao = 0) {
       .attr("width", LARG_BUFFER)
       .attr("height", ALT_BUFFER.value)
       .attr("stroke-width", 5)
-      .attr("stroke", "hsl(var(--ac))")
-      .attr("fill", "hsl(var(--nc))")
+      .attr("stroke", "oklch(var(--bc))")
+      .attr("fill", "oklch(var(--nc))")
       .attr("x", containerW.value / 2 - LARG_BUFFER / 2)
       .attr("y", containerH.value / 2 - ALT_BUFFER.value / 2)
   }
@@ -440,7 +442,7 @@ function criaConsumidor() {
  * @param {Number} pos_x Posição horizontal do objeto e texto a ser criado.
  * @param {Number} pos_y Posição vertical do objeto e texto a ser criado.
  * @param {Number} id Índice do objeto em seu respectivo vetor que será salvo como id do objeto.
- * @param {String} cor Opcional. Cor a ser usada. Por padrão utiliza hsl(var(--a)). 
+ * @param {String} cor Opcional. Cor a ser usada. Por padrão utiliza oklch(var(--a)). 
  * 
  * @returns {Object} Um objeto com os seguintes campos:
  * objeto: o objeto/elemento do canvas de um produtor/consumidor, 
@@ -448,14 +450,14 @@ function criaConsumidor() {
  * seta: null
  * pos_seta: null
  */
-function criaObjeto(pos_x, pos_y, id, cor = "hsl(var(--a))") {
+function criaObjeto(pos_x, pos_y, id, cor = "oklch(var(--a))") {
   var objeto = canvas.append("circle")
     .attr("r", TAM_CIRCULO)
     .style("stroke-width", 5)
     .attr("cx", pos_x)
     .attr("cy", pos_y)
     .attr("id", id)
-    .style("stroke", "hsl(var(--ac))")
+    .style("stroke", "oklch(var(--bc))")
     .style("fill", cor)
     .style("cursor", "pointer");
 
@@ -466,7 +468,7 @@ function criaObjeto(pos_x, pos_y, id, cor = "hsl(var(--a))") {
     .text("")
     .attr("id", id)
     .style("cursor", "pointer");
-  texto.style('fill', 'hsl(var(--ac))');
+  texto.style('fill', 'oklch(var(--bc))');
 
   return {
     objeto: objeto,

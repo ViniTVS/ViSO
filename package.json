@@ -1,5 +1,6 @@
 {
-  "name": "nuxt-app",
+  "name": "visualso",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "build": "nuxt build",
@@ -10,15 +11,15 @@
   },
   "devDependencies": {
     "@nuxt/devtools": "latest",
-    "@nuxtjs/color-mode": "^3.3.0",
-    "@nuxtjs/google-fonts": "^3.0.2",
-    "@nuxtjs/tailwindcss": "^6.8.0",
-    "@types/node": "^18.17.3",
-    "@vueuse/core": "^10.3.0",
+    "@nuxtjs/color-mode": "^3.3.2",
+    "@nuxtjs/google-fonts": "^3.1.0",
+    "@nuxtjs/tailwindcss": "^6.10.1",
+    "@types/node": "^20.10.0",
+    "@vueuse/core": "^10.6.1",
     "d3": "^7.8.5",
-    "daisyui": "^3.6.3",
-    "nuxt": "^3.6.5",
-    "nuxt-icon": "^0.5.0"
+    "daisyui": "^4.4.12",
+    "nuxt": "^3.8.2",
+    "nuxt-icon": "^0.6.6"
   },
   "dependencies": {
     "d3-arrow": "^0.0.25",

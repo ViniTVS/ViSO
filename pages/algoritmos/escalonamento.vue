@@ -93,12 +93,11 @@ const headers = ["Tarefa", "t1", "t2", "t3", "t4", "t5"];
 
 // cores para usar ao criar prdutores. Também limita o num. de produtores (1 pra cada cor)
 const cores = [
-  // "hsl(var(--p))",
-  "hsl(var(--s))",
-  "hsl(var(--su))",
-  "hsl(var(--in))",
-  "hsl(var(--wa))",
-  "hsl(var(--er))",
+  "oklch(var(--s))",
+  "oklch(var(--su))",
+  "oklch(var(--in))",
+  "oklch(var(--wa))",
+  "oklch(var(--er))",
 ];
 // constantes com tamanhos dos quadrados, círculos e buffer
 const TAM_QUADRADO = 25;
@@ -210,7 +209,7 @@ onMounted(() => {
       .attr("x", 10)
       .attr("y", TAM_QUADRADO * i * 2 - TAM_QUADRADO - 4) // -4 p/ centralizar o texto (de tam. 8)
       .attr("text-anchor", "middle")
-      .attr("fill", "hsl(var(--bc))");
+      .attr("fill", "oklch(var(--bc))");
   }
 })
 
@@ -664,9 +663,9 @@ function criaGrid(tarefas) {
 }
 
 function getColorByState(estado, lin) {
-  if (estado == 0) return ["hsl(var(--b1))", "hsl(var(--nc))"];
-  if (estado == 1) return ["hsl(var(--b1))", "hsl(var(--ac))"];
-  return [cores[lin % cores.length], "hsl(var(--ac))"];
+  if (estado == 0) return ["oklch(var(--b1))", "oklch(var(--nc))"];
+  if (estado == 1) return ["oklch(var(--b1))", "oklch(var(--bc))"];
+  return [cores[lin % cores.length], "oklch(var(--bc))"];
 }
 
 function desenhaGrid(data) {

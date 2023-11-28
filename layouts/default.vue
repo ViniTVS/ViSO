@@ -54,7 +54,7 @@ function clickDropDown() {
             class="dropdown-content z-[1] menu p-2 shadow bg-base-200 rounded-box w-52">
             <!-- cria opcoes do dropdown dinamicamente -->
             <li v-for="item in opcoes_dropdown" @click="handleDropdown">
-              <NuxtLink :class="isDark ? 'text-primary-content' : 'text-black'" :to="item.link">
+              <NuxtLink :class="isDark ? 'text-white' : 'text-black'" :to="item.link">
                 {{ item.titulo }}
               </NuxtLink>
             </li>
@@ -84,9 +84,6 @@ body {
   margin: 0;
 }
 
-[data-theme="dark"] {
-  --bc: 220 100% 100% !important;
-}
 
 
 .flex-grow {
