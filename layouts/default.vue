@@ -16,7 +16,7 @@ let opcoes_dropdown = [
 onMounted(() => {
   themeChange(false);
   isDark.value = document.documentElement.getAttribute('data-theme') === 'dark';
-  if(!isDark.value){ // garantir que a página tenha tema
+  if (!isDark.value) { // garantir que a página tenha tema
     document.documentElement.setAttribute('data-theme', 'light');
   }
 })
@@ -40,6 +40,8 @@ function clickDropDown() {
 </script>
 
 <template>
+  <Meta name="description" content="VisualSO - Uma Prova de Conceito de animações de Sistemas Operacionais" />
+  <Meta name="author" content="Vinícius Teixeira Vieira dos Santos, Glaide de Lara Oliveira" />
   <div class="flex flex-col" style="height: 100vh;">
     <nav class="navbar bg-primary text-primary-content flex" id="navbar">
       <div class="flex-1">
