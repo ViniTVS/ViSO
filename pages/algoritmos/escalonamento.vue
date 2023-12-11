@@ -32,7 +32,7 @@
     </div>
     <div class="col-span-3 md:col-span-1 form-control m-auto p-2">
       <label class="label">
-        <span class="label-text">Selecione o algoritmo de escalonamento a ser sexecutado</span>
+        <span class="label-text">Selecione o algoritmo de escalonamento a ser executado</span>
       </label>
       <select class="select select-bordered" name="algoritmo" id="algoritmo" v-model="algoritmo">
         <option v-for="(opcao, i) in opcoes" :value="opcao.alg" :selected="i == 0"> {{ opcao.nome }}</option>
@@ -197,7 +197,7 @@ watch(tarefas, () => {
  * Função chamada uma só vez quando a página é montada.
  */
 onMounted(() => {
-  // "cria" canvas 
+  // "cria" canvas
   canvas = d3.select("#d3Container")
     .append('svg')
     .attr('width', '100%')
@@ -235,19 +235,19 @@ function executaAlgoritmo() {
 
 
 /**
- * Cria um vetor de tarefas para ser passado à criaGrid usando o algoritimo 
+ * Cria um vetor de tarefas para ser passado à criaGrid usando o algoritimo
  * First Come, First Served.
- * 
- * @param {Array} tarefas Vetor de objetos com campos ingresso, duracao, prioridade, 
- * estado, prio_dinamica e processado. 
+ *
+ * @param {Array} tarefas Vetor de objetos com campos ingresso, duracao, prioridade,
+ * estado, prio_dinamica e processado.
  * @param {Int} indice_atual Índice da última tarefa executada. Por padrão é -1.
  * @param {Int} tempo Tempo de execução do algoritmo. Por padrão é 0.
- * 
+ *
  * @returns Vetor de tarefas com campo estado atualizado.
  */
 function firstComeFirstServed(tarefas, indice_atual = -1, tempo = 0) {
   var indice;
-  // define indice inicial. Se a tarefa ainda não acabou, usar seu indice 
+  // define indice inicial. Se a tarefa ainda não acabou, usar seu indice
   if (indice_atual >= 0 && tarefas[indice_atual].duracao > 0) {
     indice = indice_atual;
   } else {
@@ -302,18 +302,18 @@ function firstComeFirstServed(tarefas, indice_atual = -1, tempo = 0) {
 /**
  * Cria um vetor de tarefas para ser passado à criaGrid usando a lógica do escalodor por
  * prioridade cooperativo.
- * 
- * @param {Array} tarefas Vetor de objetos com campos ingresso, duracao, prioridade, 
- * estado, prio_dinamica e processado.  
+ *
+ * @param {Array} tarefas Vetor de objetos com campos ingresso, duracao, prioridade,
+ * estado, prio_dinamica e processado.
  * @param {Int} indice_atual Índice da última tarefa executada. Por padrão é -1.
  * @param {Int} tempo Tempo de execução do algoritmo. Por padrão é 0.
- * 
+ *
  * @returns Vetor de tarefas com campo estado atualizado.
  */
 function PRIOc(tarefas, indice_atual = -1, tempo = 0) {
   var tarefas_c = structuredClone(tarefas);  // copia vetor de tarefas
   var indice;
-  // define indice inicial. Se a tarefa ainda não acabou, usar seu indice 
+  // define indice inicial. Se a tarefa ainda não acabou, usar seu indice
   if (indice_atual >= 0 && precisaProcessar(tarefas_c[indice_atual], tempo)) {
     indice = indice_atual;
     for (let i = 0; i < tarefas_c.length; i++) {
@@ -366,11 +366,11 @@ function PRIOc(tarefas, indice_atual = -1, tempo = 0) {
 /**
  * Cria um vetor de tarefas para ser passado à criaGrid usando a lógica do escalodor por
  * prioridade preemptivo.
- * 
- * @param {Array} tarefas Vetor de objetos com campos ingresso, duracao, prioridade, 
- * estado, prio_dinamica e processado.  
+ *
+ * @param {Array} tarefas Vetor de objetos com campos ingresso, duracao, prioridade,
+ * estado, prio_dinamica e processado.
  * @param {Int} tempo Tempo de execução do algoritmo. Por padrão é 0.
- * 
+ *
  * @returns Vetor de tarefas com campo estado atualizado.
  */
 function PRIOp(tarefas, tempo = 0) {
@@ -420,14 +420,14 @@ function PRIOp(tarefas, tempo = 0) {
  * Cria um vetor de tarefas para ser passado à criaGrid usando a lógica do escalodor por
  * prioridades dinâmicas. Diferente da lógica utilizada no livro do Maziero, aqui o valor
  * da prioridade dinâmica é atualizado a cada intervalo de tempo.
- * 
- * @param {Array} tarefas Vetor de objetos com campos ingresso, duracao, prioridade, 
- * estado, prio_dinamica e processado.  
+ *
+ * @param {Array} tarefas Vetor de objetos com campos ingresso, duracao, prioridade,
+ * estado, prio_dinamica e processado.
  * @param {Int} indice_atual Índice da última tarefa executada. Por padrão é -1.
  * @param {Int} tempo Tempo de execução do algoritmo. Por padrão é 0.
  * @param {Int} peso Valor em que cada prioridade dinâmica da tarefa deve ser acrescido.
  * Por padrão é 1.
- * 
+ *
  * @returns Vetor de tarefas com campo estado atualizado.
  */
 function PRIOd(tarefas, indice_atual = -1, tempo = 0, peso = 1) {
@@ -485,10 +485,10 @@ function PRIOd(tarefas, indice_atual = -1, tempo = 0, peso = 1) {
 /**
  * Cria um vetor de tarefas para ser passado à criaGrid usando Round-Robin. O valor utilizado
  * como quantum é definido pela variável observável quantum.
- * 
- * @param {Array} lista_tarefas Vetor de objetos com campos ingresso, duracao, prioridade, 
+ *
+ * @param {Array} lista_tarefas Vetor de objetos com campos ingresso, duracao, prioridade,
  * estado, prio_dinamica e processado.
- * 
+ *
  * @returns Vetor de tarefas com campo estado atualizado.
  */
 function roundRobin(lista_tarefas) {
@@ -545,10 +545,10 @@ function roundRobin(lista_tarefas) {
 
 /**
  * Cria um vetor de tarefas para ser passado à criaGrid usando Shortest Job First.
- * 
- * @param {Array} lista_tarefas Vetor de objetos com campos ingresso, duracao, prioridade, 
+ *
+ * @param {Array} lista_tarefas Vetor de objetos com campos ingresso, duracao, prioridade,
  * estado, prio_dinamica e processado.
- * 
+ *
  * @returns Vetor de tarefas com campo estado atualizado.
  */
 function shortestJobFirst(tarefas) {
@@ -562,7 +562,7 @@ function shortestJobFirst(tarefas) {
     for (let i in tarefas) {
       if (precisaProcessar(tarefas[i], tempo)) {
         tarefas[i].estado = 1;
-        // se devemos trocar, pegamos a de menor duracao 
+        // se devemos trocar, pegamos a de menor duracao
         if (troca && (indice < 0 || tarefas[i].duracao < tarefas[indice].duracao)) {
           indice = i;
         }
@@ -593,13 +593,13 @@ function shortestJobFirst(tarefas) {
 }
 
 /**
- * Função auxiliar para dizer se uma tarefa ainda precisa ser executada ou 
+ * Função auxiliar para dizer se uma tarefa ainda precisa ser executada ou
  * se ainda não entrou na fila/já foi processado o tempo necessário.
- * 
- * @param {Object} tarefa Tarefa a ser avaliada, de campos ingresso, duracao, prioridade, 
- * estado, prio_dinamica e processado. 
+ *
+ * @param {Object} tarefa Tarefa a ser avaliada, de campos ingresso, duracao, prioridade,
+ * estado, prio_dinamica e processado.
  * @param {Int} tempo Tempo atual do algoritmo sendo executado.
- * 
+ *
  * @returns true se tarefa precisa ser executada, false caso contrário.
  */
 function precisaProcessar(tarefa, tempo) {
@@ -609,11 +609,11 @@ function precisaProcessar(tarefa, tempo) {
 /**
  * Função auxiliar para avaliar se em um tempo futuro ainda "entrará" uma tarefa
  * na fila ou se alguma tarefa ainda não foi totalmente processada.
- * 
- * @param {Object} tarefas Vetor de tarefas a ser avaliado, de campos ingresso, duracao, prioridade, 
- * estado, prio_dinamica e processado. 
+ *
+ * @param {Object} tarefas Vetor de tarefas a ser avaliado, de campos ingresso, duracao, prioridade,
+ * estado, prio_dinamica e processado.
  * @param {Int} tempo Tempo atual do algoritmo sendo executado.
- * 
+ *
  * @returns true se ainda existe(m) tarefa(s), false caso contrário.
  */
 function restaTarefa(tarefas, tempo) {
@@ -626,11 +626,11 @@ function restaTarefa(tarefas, tempo) {
 
 /**
  * Cria o grid com dados para serem representados pelo d3.js na função desenhaGrid.
- * 
- * @param {Array} tarefas Um vetor de tarefas, onde cada índice é "uma passagem de tempo", 
+ *
+ * @param {Array} tarefas Um vetor de tarefas, onde cada índice é "uma passagem de tempo",
  * com valores das tarefas a cada momento.
- * 
- * @returns Matriz em que cada linha representa uma tarefa para o desenho e cada coluna o 
+ *
+ * @returns Matriz em que cada linha representa uma tarefa para o desenho e cada coluna o
  * objeto para ser desenhado na tela, de campos x, y, width, height, cor, cor_borda, estado.
  */
 function criaGrid(tarefas) {
