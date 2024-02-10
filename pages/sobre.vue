@@ -1,6 +1,6 @@
 <script setup lang="ts">
 useHead({
-  title: 'Sobre - VisualSO'
+  title: 'Sobre - ViSO'
 });
 
 // const route = useRoute();

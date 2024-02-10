@@ -1,4 +1,4 @@
-VisualSO é uma Prova de Conceito de forma a trazer uma abordagem inicial de um sistema de representação visual e interação para tornar a aprendizagem de Sistemas Operacionais mais interativa e imersiva.
+ViSO é uma Prova de Conceito de forma a trazer uma abordagem inicial de um sistema de representação visual e interação para tornar a aprendizagem de Sistemas Operacionais mais interativa e imersiva.
 
 
 # Nuxt 3 Minimal Starter

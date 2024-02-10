@@ -47,7 +47,7 @@ import * as d3a from "d3-arrow";
 import { ref, computed, onMounted } from 'vue';
 
 useHead({
-  title: 'Produtor-consumidor - VisualSO'
+  title: 'Produtor-consumidor - ViSO'
 });
 
 // cores para usar ao criar prdutores. Também limita o num. de produtores (1 pra cada cor)

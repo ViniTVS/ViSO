@@ -40,12 +40,12 @@ function clickDropDown() {
 </script>
 
 <template>
-  <Meta name="description" content="VisualSO - Uma Prova de Conceito de animações de Sistemas Operacionais" />
+  <Meta name="description" content="ViSO - Uma Prova de Conceito de animações de Sistemas Operacionais" />
   <Meta name="author" content="Vinícius Teixeira Vieira dos Santos, Glaide de Lara Oliveira" />
   <div class="flex flex-col" style="height: 100vh;">
     <nav class="navbar bg-primary text-primary-content flex" id="navbar">
       <div class="flex-1">
-        <NuxtLink class="btn btn-ghost normal-case text-xl" to="/">VisualSO</NuxtLink>
+        <NuxtLink class="btn btn-ghost normal-case text-xl" to="/">ViSO</NuxtLink>
       </div>
       <div class="flex justify-end flex-1 px-2">
         <NuxtLink class="btn btn-primary btn-sm normal-case tm-1" to="/sobre">Sobre</NuxtLink>

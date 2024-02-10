@@ -87,7 +87,7 @@ import * as d3 from "d3";
 import { ref, onMounted, watch } from 'vue';
 
 useHead({
-  title: 'Escalonamento de tarefas - VisualSO'
+  title: 'Escalonamento de tarefas - ViSO'
 });
 const headers = ["Tarefa", "t1", "t2", "t3", "t4", "t5"];
 
